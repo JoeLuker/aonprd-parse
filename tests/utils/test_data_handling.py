@@ -37,7 +37,6 @@ async def test_load_yaml_failure():
 @pytest.mark.asyncio
 async def test_save_yaml_success():
     data = {'key': 'value'}
-    yaml_dump_content = yaml.dump(data, Dumper=yaml.CDumper, default_flow_style=False, allow_unicode=True, sort_keys=False)
     
     with patch("src.utils.data_handling.open", mock_open()) as mock_file:
         with patch("yaml.dump") as mock_yaml_dump:

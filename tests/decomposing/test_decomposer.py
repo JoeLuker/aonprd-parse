@@ -87,7 +87,6 @@ async def test_save_results(decomposer, tmp_path):
 
 @pytest.mark.asyncio
 async def test_create_node(decomposer):
-    node_id = await decomposer._create_node('tag', name='p', attributes_id='a1')
     assert len(decomposer.structure['nodes']) == 1
     assert decomposer.structure['nodes'][0]['type'] == 'tag'
     assert decomposer.structure['nodes'][0]['name'] == 'p'
