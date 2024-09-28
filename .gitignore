@@ -1,7 +1,11 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+<<<<<<< HEAD
 *$py.class
+=======
+*.class
+>>>>>>> 9fdccd5 (Initial commit: Set up project structure and configurations)
 
 # C extensions
 *.so
@@ -19,6 +23,7 @@ lib64/
 parts/
 sdist/
 var/
+<<<<<<< HEAD
 wheels/
 share/python-wheels/
 *.egg-info/
@@ -31,6 +36,20 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+=======
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+.env/
+env.bak/
+venv.bak/
+>>>>>>> 9fdccd5 (Initial commit: Set up project structure and configurations)
 
 # Installer logs
 pip-log.txt
@@ -48,8 +67,11 @@ coverage.xml
 *.cover
 *.py,cover
 .hypothesis/
+<<<<<<< HEAD
 .pytest_cache/
 cover/
+=======
+>>>>>>> 9fdccd5 (Initial commit: Set up project structure and configurations)
 
 # Translations
 *.mo
@@ -58,8 +80,11 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
+<<<<<<< HEAD
 db.sqlite3
 db.sqlite3-journal
+=======
+>>>>>>> 9fdccd5 (Initial commit: Set up project structure and configurations)
 
 # Flask stuff:
 instance/
@@ -72,7 +97,10 @@ instance/
 docs/_build/
 
 # PyBuilder
+<<<<<<< HEAD
 .pybuilder/
+=======
+>>>>>>> 9fdccd5 (Initial commit: Set up project structure and configurations)
 target/
 
 # Jupyter Notebook
@@ -83,6 +111,7 @@ profile_default/
 ipython_config.py
 
 # pyenv
+<<<<<<< HEAD
 #   For a library or package, you might want to ignore these files since the code is
 #   intended to run in multiple environments; otherwise, check them in:
 # .python-version
@@ -139,6 +168,15 @@ venv.bak/
 
 # mkdocs documentation
 /site
+=======
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# dotenv
+.env
+>>>>>>> 9fdccd5 (Initial commit: Set up project structure and configurations)
 
 # mypy
 .mypy_cache/
@@ -148,6 +186,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+<<<<<<< HEAD
 # pytype static type analyzer
 .pytype/
 
@@ -163,3 +202,25 @@ cython_debug/
 data/raw_html_data/*.html
 data/consolidated/crawler_state.db
 data/raw_html_data/*.html
+=======
+# VSCode
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# Memgraph logs
+memgraph_importer.log
+unwrap_matching_nodes.log
+yaml_csv_prep.log
+html_processor.log
+
+# Database files
+*.sqlite3
+*.db
+
+# Git LFS tracked files
+data/raw_html_data/*.html
+data/consolidated/crawler_state.db
+>>>>>>> 9fdccd5 (Initial commit: Set up project structure and configurations)
