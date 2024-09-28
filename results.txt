@@ -1,0 +1,1347 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.5, pytest-8.3.3, pluggy-1.5.0 -- /Users/jluker/aonprd-parse/venv/bin/python3.12
+cachedir: .pytest_cache
+rootdir: /Users/jluker/aonprd-parse
+configfile: pytest.ini
+plugins: asyncio-0.24.0
+asyncio: mode=Mode.STRICT, default_loop_scope=function
+collecting ... collected 47 items
+
+tests/cleaning/test_manual_cleaning.py::test_connect_to_db_success PASSED [  2%]
+tests/cleaning/test_manual_cleaning.py::test_connect_to_db_failure PASSED [  4%]
+tests/cleaning/test_manual_cleaning.py::test_get_html_file_mapping FAILED [  6%]
+tests/cleaning/test_manual_cleaning.py::test_prepare_canonical_mapping PASSED [  8%]
+tests/cleaning/test_manual_cleaning.py::test_insert_canonical_mapping FAILED [ 10%]
+tests/cleaning/test_manual_cleaning.py::test_get_skip_files FAILED       [ 12%]
+tests/cleaning/test_manual_cleaning.py::test_process_file_async_with_replacements ERROR [ 14%]
+tests/cleaning/test_manual_cleaning.py::test_process_file_async_no_replacements ERROR [ 17%]
+tests/cleaning/test_manual_cleaning.py::test_process_file_async_skip_file FAILED [ 19%]
+tests/cleaning/test_manual_cleaning.py::test_clean_and_copy_files_async FAILED [ 21%]
+tests/decomposing/test_decomposer.py::test_process_file_success PASSED   [ 23%]
+tests/decomposing/test_decomposer.py::test_process_element FAILED        [ 25%]
+tests/decomposing/test_decomposer.py::test_run_no_files PASSED           [ 27%]
+tests/decomposing/test_decomposer.py::test_run_with_files FAILED         [ 29%]
+tests/decomposing/test_decomposer.py::test_save_results FAILED           [ 31%]
+tests/decomposing/test_decomposer.py::test_create_node FAILED            [ 34%]
+tests/decomposing/test_decomposer.py::test_create_edge FAILED            [ 36%]
+tests/importing/test_csv_prep.py::test_export_node FAILED                [ 38%]
+tests/importing/test_csv_prep.py::test_export_attribute FAILED           [ 40%]
+tests/importing/test_csv_prep.py::test_export_relationship_with_order FAILED [ 42%]
+tests/importing/test_csv_prep.py::test_export_relationship_without_order FAILED [ 44%]
+tests/importing/test_csv_prep.py::test_csv_prep_run PASSED               [ 46%]
+tests/processing.py/test_unwrap.py::test_validate_graph FAILED           [ 48%]
+tests/processing.py/test_unwrap.py::test_validate_graph_with_cycles FAILED [ 51%]
+tests/processing.py/test_unwrap.py::test_unwrap_matching_nodes FAILED    [ 53%]
+tests/processing.py/test_unwrap.py::test_save_results FAILED             [ 55%]
+tests/utils/test_data_handling.py::test_load_yaml_success PASSED         [ 57%]
+tests/utils/test_data_handling.py::test_load_yaml_failure FAILED         [ 59%]
+tests/utils/test_data_handling.py::test_save_yaml_success FAILED         [ 61%]
+tests/utils/test_data_handling.py::test_save_yaml_failure FAILED         [ 63%]
+tests/utils/test_data_handling.py::test_load_pickle_success FAILED       [ 65%]
+tests/utils/test_data_handling.py::test_load_pickle_failure FAILED       [ 68%]
+tests/utils/test_data_handling.py::test_save_pickle_success FAILED       [ 70%]
+tests/utils/test_data_handling.py::test_save_pickle_failure FAILED       [ 72%]
+tests/utils/test_file_operations.py::test_read_file_async_success PASSED [ 74%]
+tests/utils/test_file_operations.py::test_read_file_async_failure FAILED [ 76%]
+tests/utils/test_file_operations.py::test_write_file_async_success PASSED [ 78%]
+tests/utils/test_file_operations.py::test_write_file_async_failure FAILED [ 80%]
+tests/utils/test_file_operations.py::test_copy_async_success PASSED      [ 82%]
+tests/utils/test_file_operations.py::test_copy_async_failure FAILED      [ 85%]
+tests/utils/test_file_operations.py::test_apply_replacements FAILED      [ 87%]
+tests/utils/test_file_operations.py::test_apply_replacements_no_changes FAILED [ 89%]
+tests/utils/test_file_operations.py::test_ensure_directory_exists FAILED [ 91%]
+tests/utils/test_file_operations.py::test_ensure_directory_failure FAILED [ 93%]
+tests/utils/test_logging.py::test_logger_info PASSED                     [ 95%]
+tests/utils/test_logging.py::test_logger_error PASSED                    [ 97%]
+tests/utils/test_logging.py::test_logger_verbose PASSED                  [100%]
+
+==================================== ERRORS ====================================
+_________ ERROR at setup of test_process_file_async_with_replacements __________
+
+    @pytest.fixture
+    def mock_config():
+        # Adjust the patch target based on how 'config' is imported in the code under test
+>       with patch("src.cleaning.manual_cleaning.config.config") as mock_conf:
+
+tests/conftest.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:1461: in __enter__
+    original, local = self.get_original()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x104957050>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: paths=PathsConfig(input_folder=PosixPath('data/raw_html_data'), manual_cleaned_html_data=PosixPath('data/manual_cleaned_html_data'), consolidated_dir=PosixPath('data/consolidated'), log_dir=PosixPath('logs'), decomposed_output_dir=PosixPath('data/decomposed'), condensed_output_dir=PosixPath('data/condensed'), processing_output_dir=PosixPath('data/processed'), import_files_dir=PosixPath('data/import_files')) processing=ProcessingConfig(max_files=35000, similarity_threshold=0.99, max_workers=16) files=FilesConfig(data_pickle='data.pickle', structure_pickle='structure.pickle', filtered_data_pickle='filtered_data.pickle', filtered_structure_pickle='filtered_structure.pickle', data_yaml='data.yaml', structure_yaml='structure.yaml', filtered_data_yaml='filtered_data.yaml', filtered_structure_yaml='filtered_structure.yaml') database=DatabaseConfig(consolidated_html_db=PosixPath('data/consolidated/consolidated_html_data.db'), crawler_db=PosixPath('data/consolidated/crawler_state.db')) memgraph=MemgraphConfig(host='localhost', port=7687, batch_size=1000) logging=LoggingConfig(processor_log='html_processor.log', csv_prep_log='yaml_csv_prep.log', memgraph_importer_log='memgraph_importer.log', unwrap_log='unwrap_matching_nodes.log', console_level='INFO', file_level='DEBUG') does not have the attribute 'config'
+
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:1434: AttributeError
+__________ ERROR at setup of test_process_file_async_no_replacements ___________
+
+    @pytest.fixture
+    def mock_config():
+        # Adjust the patch target based on how 'config' is imported in the code under test
+>       with patch("src.cleaning.manual_cleaning.config.config") as mock_conf:
+
+tests/conftest.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:1461: in __enter__
+    original, local = self.get_original()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x105d68290>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: paths=PathsConfig(input_folder=PosixPath('data/raw_html_data'), manual_cleaned_html_data=PosixPath('data/manual_cleaned_html_data'), consolidated_dir=PosixPath('data/consolidated'), log_dir=PosixPath('logs'), decomposed_output_dir=PosixPath('data/decomposed'), condensed_output_dir=PosixPath('data/condensed'), processing_output_dir=PosixPath('data/processed'), import_files_dir=PosixPath('data/import_files')) processing=ProcessingConfig(max_files=35000, similarity_threshold=0.99, max_workers=16) files=FilesConfig(data_pickle='data.pickle', structure_pickle='structure.pickle', filtered_data_pickle='filtered_data.pickle', filtered_structure_pickle='filtered_structure.pickle', data_yaml='data.yaml', structure_yaml='structure.yaml', filtered_data_yaml='filtered_data.yaml', filtered_structure_yaml='filtered_structure.yaml') database=DatabaseConfig(consolidated_html_db=PosixPath('data/consolidated/consolidated_html_data.db'), crawler_db=PosixPath('data/consolidated/crawler_state.db')) memgraph=MemgraphConfig(host='localhost', port=7687, batch_size=1000) logging=LoggingConfig(processor_log='html_processor.log', csv_prep_log='yaml_csv_prep.log', memgraph_importer_log='memgraph_importer.log', unwrap_log='unwrap_matching_nodes.log', console_level='INFO', file_level='DEBUG') does not have the attribute 'config'
+
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:1434: AttributeError
+=================================== FAILURES ===================================
+__________________________ test_get_html_file_mapping __________________________
+
+    @pytest.mark.asyncio
+    async def test_get_html_file_mapping():
+        mock_conn_instance = AsyncMock(spec=sqlite3.Connection)
+        mock_cursor_instance = AsyncMock(spec=sqlite3.Cursor)
+        mock_conn_instance.cursor.return_value = mock_cursor_instance
+        mock_cursor_instance.fetchall.return_value = [
+            ("duplicate1.html", "original1.html", "url1&SchoolSort=true", "url1"),
+            ("duplicate2.html", "original2.html", "url2&SchoolSort=true", "url2")
+        ]
+        mock_cursor_instance.description = [
+            ("file_with_sort",),
+            ("file_without_sort",),
+            ("url_with_sort",),
+            ("url_without_sort",)
+        ]
+    
+        with patch("src.cleaning.manual_cleaning.asyncio.to_thread", new_callable=AsyncMock, return_value=mock_conn_instance):
+>           mapping = await get_html_file_mapping(mock_conn_instance)
+
+tests/cleaning/test_manual_cleaning.py:70: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+conn = <AsyncMock spec='Connection' id='4392138896'>
+
+    async def get_html_file_mapping(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
+        """Retrieve HTML file mappings from the database."""
+        query = """
+        SELECT
+            f1.file_name AS file_with_sort,
+            f2.file_name AS file_without_sort,
+            f1.relative_url AS url_with_sort,
+            f2.relative_url AS url_without_sort
+        FROM files f1
+        JOIN files f2 ON f1.relative_url = f2.relative_url || '&SchoolSort=true'
+        WHERE f1.relative_url LIKE 'Spells.aspx?Class=%&SchoolSort=true'
+        """
+        try:
+>           cursor = await conn.execute(query)
+E           TypeError: object MagicMock can't be used in 'await' expression
+
+src/cleaning/manual_cleaning.py:156: TypeError
+________________________ test_insert_canonical_mapping _________________________
+
+mock_conn = <coroutine object mock_conn at 0x105c7ef60>
+
+    @pytest.mark.asyncio
+    async def test_insert_canonical_mapping(mock_conn):
+        data_to_insert = [
+            ("original1.html", "duplicate1.html", "url1", "url1&SchoolSort=true"),
+            ("original2.html", "duplicate2.html", "url2", "url2&SchoolSort=true")
+        ]
+>       await insert_canonical_mapping(mock_conn, data_to_insert)
+
+tests/cleaning/test_manual_cleaning.py:104: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+conn = <coroutine object mock_conn at 0x105c7ef60>
+data_to_insert = [('original1.html', 'duplicate1.html', 'url1', 'url1&SchoolSort=true'), ('original2.html', 'duplicate2.html', 'url2', 'url2&SchoolSort=true')]
+
+    async def insert_canonical_mapping(
+        conn: sqlite3.Connection, data_to_insert: List[Tuple[str, str, str, str]]
+    ):
+        """Insert canonical mappings into the database."""
+        try:
+>           await conn.executemany(
+                """
+            INSERT OR REPLACE INTO canonical_mapping
+            (canonical_file, duplicate_file, canonical_url, duplicate_url)
+            VALUES (?, ?, ?, ?)
+            """,
+                data_to_insert,
+            )
+E           AttributeError: 'coroutine' object has no attribute 'executemany'
+
+src/cleaning/manual_cleaning.py:189: AttributeError
+_____________________________ test_get_skip_files ______________________________
+
+    @pytest.mark.asyncio
+    async def test_get_skip_files():
+        mock_conn_instance = AsyncMock(spec=sqlite3.Connection)
+        mock_cursor_instance = AsyncMock(spec=sqlite3.Cursor)
+        mock_conn_instance.cursor.return_value = mock_cursor_instance
+        mock_cursor_instance.fetchall.return_value = [
+            ("duplicate1.html", "original1.html", "url1&SchoolSort=true", "url1"),
+            ("duplicate2.html", "original2.html", "url2&SchoolSort=true", "url2")
+        ]
+    
+        with patch("src.cleaning.manual_cleaning.asyncio.to_thread", new_callable=AsyncMock, return_value=mock_conn_instance):
+>           skip_files = await get_skip_files(mock_conn_instance)
+
+tests/cleaning/test_manual_cleaning.py:127: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/cleaning/manual_cleaning.py:216: in get_skip_files
+    mapping_data = await get_html_file_mapping(conn)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+conn = <AsyncMock spec='Connection' id='4392320896'>
+
+    async def get_html_file_mapping(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
+        """Retrieve HTML file mappings from the database."""
+        query = """
+        SELECT
+            f1.file_name AS file_with_sort,
+            f2.file_name AS file_without_sort,
+            f1.relative_url AS url_with_sort,
+            f2.relative_url AS url_without_sort
+        FROM files f1
+        JOIN files f2 ON f1.relative_url = f2.relative_url || '&SchoolSort=true'
+        WHERE f1.relative_url LIKE 'Spells.aspx?Class=%&SchoolSort=true'
+        """
+        try:
+>           cursor = await conn.execute(query)
+E           TypeError: object MagicMock can't be used in 'await' expression
+
+src/cleaning/manual_cleaning.py:156: TypeError
+______________________ test_process_file_async_skip_file _______________________
+
+    @pytest.mark.asyncio
+    async def test_process_file_async_skip_file():
+        source_path = Path("duplicate1.html")
+        destination_path = Path("duplicate1.html")
+    
+        with patch("src.utils.file_operations.FileOperations.copy_async", new_callable=AsyncMock) as mock_copy:
+>           modified, applied = await process_file_async(source_path, destination_path, skip_files={"duplicate1.html"})
+
+tests/cleaning/test_manual_cleaning.py:187: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/cleaning/manual_cleaning.py:84: in process_file_async
+    await copy_file_async(source_path, destination_path)
+src/cleaning/manual_cleaning.py:70: in copy_file_async
+    await asyncio.to_thread(shutil.copy2, source, destination)
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/threads.py:25: in to_thread
+    return await loop.run_in_executor(None, func_call)
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/thread.py:58: in run
+    result = self.fn(*self.args, **self.kwargs)
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/shutil.py:475: in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('duplicate1.html'), dst = PosixPath('duplicate1.html')
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+            raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+    
+        file_size = 0
+        for i, fn in enumerate([src, dst]):
+            try:
+                st = _stat(fn)
+            except OSError:
+                # File most likely does not exist
+                pass
+            else:
+                # XXX What about other special files? (sockets, devices...)
+                if stat.S_ISFIFO(st.st_mode):
+                    fn = fn.path if isinstance(fn, os.DirEntry) else fn
+                    raise SpecialFileError("`%s` is a named pipe" % fn)
+                if _WINDOWS and i == 0:
+                    file_size = st.st_size
+    
+        if not follow_symlinks and _islink(src):
+            os.symlink(os.readlink(src), dst)
+        else:
+>           with open(src, 'rb') as fsrc:
+E           FileNotFoundError: [Errno 2] No such file or directory: 'duplicate1.html'
+
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/shutil.py:260: FileNotFoundError
+----------------------------- Captured stderr call -----------------------------
+2024-09-28 14:39:34,805 - ManualCleaningLogger - ERROR - Failed to copy file from duplicate1.html to duplicate1.html: [Errno 2] No such file or directory: 'duplicate1.html'
+Traceback (most recent call last):
+  File "/Users/jluker/aonprd-parse/src/cleaning/manual_cleaning.py", line 70, in copy_file_async
+    await asyncio.to_thread(shutil.copy2, source, destination)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/shutil.py", line 475, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/shutil.py", line 260, in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'duplicate1.html'
+------------------------------ Captured log call -------------------------------
+ERROR    ManualCleaningLogger:manual_cleaning.py:73 Failed to copy file from duplicate1.html to duplicate1.html: [Errno 2] No such file or directory: 'duplicate1.html'
+Traceback (most recent call last):
+  File "/Users/jluker/aonprd-parse/src/cleaning/manual_cleaning.py", line 70, in copy_file_async
+    await asyncio.to_thread(shutil.copy2, source, destination)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/shutil.py", line 475, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/shutil.py", line 260, in copyfile
+    with open(src, 'rb') as fsrc:
+         ^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'duplicate1.html'
+_______________________ test_clean_and_copy_files_async ________________________
+
+    @pytest.mark.asyncio
+    async def test_clean_and_copy_files_async():
+        skip_files = {"duplicate1.html", "duplicate2.html"}
+        files = [
+            Path("original1.html"),
+            Path("duplicate1.html"),
+            Path("original2.html"),
+            Path("duplicate2.html"),
+            Path("original3.html")
+        ]
+    
+>       with patch("src.cleaning.manual_cleaning.paths.input_folder.iterdir", return_value=files):
+
+tests/cleaning/test_manual_cleaning.py:204: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:1445: in __enter__
+    self.target = self.getter()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'src.cleaning.manual_cleaning.paths.input_folder'
+
+    def resolve_name(name):
+        """
+        Resolve a name to an object.
+    
+        It is expected that `name` will be a string in one of the following
+        formats, where W is shorthand for a valid Python identifier and dot stands
+        for a literal period in these pseudo-regexes:
+    
+        W(.W)*
+        W(.W)*:(W(.W)*)?
+    
+        The first form is intended for backward compatibility only. It assumes that
+        some part of the dotted name is a package, and the rest is an object
+        somewhere within that package, possibly nested inside other objects.
+        Because the place where the package stops and the object hierarchy starts
+        can't be inferred by inspection, repeated attempts to import must be done
+        with this form.
+    
+        In the second form, the caller makes the division point clear through the
+        provision of a single colon: the dotted name to the left of the colon is a
+        package to be imported, and the dotted name to the right is the object
+        hierarchy within that package. Only one import is needed in this form. If
+        it ends with the colon, then a module object is returned.
+    
+        The function will return an object (which might be a module), or raise one
+        of the following exceptions:
+    
+        ValueError - if `name` isn't in a recognised format
+        ImportError - if an import failed when it shouldn't have
+        AttributeError - if a failure occurred when traversing the object hierarchy
+                         within the imported package to get to the desired object.
+        """
+        global _NAME_PATTERN
+        if _NAME_PATTERN is None:
+            # Lazy import to speedup Python startup time
+            import re
+            dotted_words = r'(?!\d)(\w+)(\.(?!\d)(\w+))*'
+            _NAME_PATTERN = re.compile(f'^(?P<pkg>{dotted_words})'
+                                       f'(?P<cln>:(?P<obj>{dotted_words})?)?$',
+                                       re.UNICODE)
+    
+        m = _NAME_PATTERN.match(name)
+        if not m:
+            raise ValueError(f'invalid format: {name!r}')
+        gd = m.groupdict()
+        if gd.get('cln'):
+            # there is a colon - a one-step import is all that's needed
+            mod = importlib.import_module(gd['pkg'])
+            parts = gd.get('obj')
+            parts = parts.split('.') if parts else []
+        else:
+            # no colon - have to iterate to find the package boundary
+            parts = name.split('.')
+            modname = parts.pop(0)
+            # first part *must* be a module/package.
+            mod = importlib.import_module(modname)
+            while parts:
+                p = parts[0]
+                s = f'{modname}.{p}'
+                try:
+                    mod = importlib.import_module(s)
+                    parts.pop(0)
+                    modname = s
+                except ImportError:
+                    break
+        # if we reach this point, mod is the module, already imported, and
+        # parts is the list of parts in the object hierarchy to be traversed, or
+        # an empty list if just the module is wanted.
+        result = mod
+        for p in parts:
+>           result = getattr(result, p)
+E           AttributeError: module 'src.cleaning.manual_cleaning' has no attribute 'paths'. Did you mean: 'Path'?
+
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/pkgutil.py:528: AttributeError
+_____________________________ test_process_element _____________________________
+
+decomposer = <src.decomposing.decomposer.Decomposer object at 0x1040685f0>
+
+    @pytest.mark.asyncio
+    async def test_process_element(decomposer):
+        soup = BeautifulSoup("<p>Test</p>", 'html.parser')
+        parent_id = "n1"
+    
+        # Do not patch _process_element when testing it
+        # Alternatively, mock internal calls if necessary
+        await decomposer._process_element(soup.p, parent_id)
+    
+        # Depending on your actual implementation, adjust these assertions
+        assert len(decomposer.structure['nodes']) == 2  # parent_id node and new 'p' node
+>       assert len(decomposer.structure['edges']) == 1
+E       AssertionError: assert 2 == 1
+E        +  where 2 = len([{'order': 0, 'relationship': 'CONTAINS_TAG', 'source': 'n1', 'target': 'n1'}, {'order': 1, 'relationship': 'CONTAINS_TEXT', 'source': 'n1', 'target': 'n2'}])
+
+tests/decomposing/test_decomposer.py:44: AssertionError
+_____________________________ test_run_with_files ______________________________
+
+decomposer = <src.decomposing.decomposer.Decomposer object at 0x105ca92b0>
+
+    @pytest.mark.asyncio
+    async def test_run_with_files(decomposer):
+        input_dir = Path("html_files")
+        files = [Path("file1.html"), Path("file2.html")]
+    
+        with patch("pathlib.Path.iterdir", return_value=files):
+            with patch("src.utils.file_operations.FileOperations.read_file_async", new_callable=AsyncMock) as mock_read:
+                with patch.object(decomposer, 'process_file', new_callable=AsyncMock) as mock_process:
+                    await decomposer.run(input_dir)
+>                   assert mock_process.call_count == 2
+E                   AssertionError: assert 0 == 2
+E                    +  where 0 = <AsyncMock name='process_file' id='4393615040'>.call_count
+
+tests/decomposing/test_decomposer.py:69: AssertionError
+----------------------------- Captured stderr call -----------------------------
+2024-09-28 14:39:34,850 - DecomposerLogger - INFO - Found 0 HTML files to process.
+Decomposing HTML files: 0it [00:00, ?it/s]Decomposing HTML files: 0it [00:00, ?it/s]
+------------------------------ Captured log call -------------------------------
+INFO     DecomposerLogger:decomposer.py:113 Found 0 HTML files to process.
+______________________________ test_save_results _______________________________
+
+decomposer = <src.decomposing.decomposer.Decomposer object at 0x105df3260>
+tmp_path = PosixPath('/private/var/folders/t2/gm5nqszs7fzftplhq7s_h2jc0000gn/T/pytest-of-jluker/pytest-9/test_save_results0')
+
+    @pytest.mark.asyncio
+    async def test_save_results(decomposer, tmp_path):
+        decomposer.data = {'texts': {'t1': 'Test'}}
+        decomposer.structure = {'nodes': [{'id': 'n1', 'type': 'document'}], 'edges': []}
+    
+        with patch("src.utils.data_handling.DataHandler.save_yaml", new_callable=AsyncMock) as mock_save_yaml, \
+             patch("src.utils.data_handling.DataHandler.save_pickle", new_callable=AsyncMock) as mock_save_pickle:
+>           await decomposer.save_results(tmp_path)
+E           TypeError: object NoneType can't be used in 'await' expression
+
+tests/decomposing/test_decomposer.py:80: TypeError
+----------------------------- Captured stderr call -----------------------------
+2024-09-28 14:39:34,853 - DecomposerLogger - INFO - Decomposed data and structure saved successfully.
+------------------------------ Captured log call -------------------------------
+INFO     DecomposerLogger:decomposer.py:136 Decomposed data and structure saved successfully.
+_______________________________ test_create_node _______________________________
+
+decomposer = <src.decomposing.decomposer.Decomposer object at 0x105da9b20>
+
+    @pytest.mark.asyncio
+    async def test_create_node(decomposer):
+>       node_id = await decomposer._create_node('tag', name='p', attributes_id='a1')
+E       TypeError: object str can't be used in 'await' expression
+
+tests/decomposing/test_decomposer.py:92: TypeError
+_______________________________ test_create_edge _______________________________
+
+decomposer = <src.decomposing.decomposer.Decomposer object at 0x105daa600>
+
+    @pytest.mark.asyncio
+    async def test_create_edge(decomposer):
+>       await decomposer._create_edge('n1', 'n2', 'CONTAINS_TAG', 1)
+E       TypeError: object NoneType can't be used in 'await' expression
+
+tests/decomposing/test_decomposer.py:101: TypeError
+_______________________________ test_export_node _______________________________
+
+mock_csv_exporter = <src.importing.csv_prep.CSVExporter object at 0x105e00740>
+
+    def test_export_node(mock_csv_exporter):
+        node_type = 'Document'
+        node_id = 'n1'
+        properties = {'filename': 'file1.html'}
+    
+        mock_csv_exporter.files['Document']['writer'].writerow = MagicMock()
+    
+>       CSVExporter.export_node(node_type, node_id, properties)
+E       TypeError: CSVExporter.export_node() missing 1 required positional argument: 'properties'
+
+tests/importing/test_csv_prep.py:42: TypeError
+------------------------------ Captured log setup ------------------------------
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/documents.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/doctypes.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/comments.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/texts.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/tags.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/attributes.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_doctype.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_comment.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/contains_text.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/contains_tag.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_root.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_attribute.csv
+---------------------------- Captured log teardown -----------------------------
+DEBUG    CSVPrepLogger:csv_prep.py:150 Closed all CSV files
+____________________________ test_export_attribute _____________________________
+
+mock_csv_exporter = <src.importing.csv_prep.CSVExporter object at 0x105da8140>
+
+    def test_export_attribute(mock_csv_exporter):
+        attribute_id = 'a1'
+        attributes = {'class': 'test', 'id': 'test-id'}
+    
+        mock_csv_exporter.files['Attribute']['writer'].writerow = MagicMock()
+    
+>       CSVExporter.export_attribute(attribute_id, attributes)
+E       TypeError: CSVExporter.export_attribute() missing 1 required positional argument: 'attributes'
+
+tests/importing/test_csv_prep.py:52: TypeError
+------------------------------ Captured log setup ------------------------------
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/documents.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/doctypes.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/comments.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/texts.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/tags.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/attributes.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_doctype.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_comment.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/contains_text.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/contains_tag.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_root.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_attribute.csv
+---------------------------- Captured log teardown -----------------------------
+DEBUG    CSVPrepLogger:csv_prep.py:150 Closed all CSV files
+_____________________ test_export_relationship_with_order ______________________
+
+mock_csv_exporter = <src.importing.csv_prep.CSVExporter object at 0x105e6db20>
+
+    def test_export_relationship_with_order(mock_csv_exporter):
+        rel_type = 'HAS_DOCTYPE'
+        source = 'n1'
+        target = 'd1'
+        source_type = 'Document'
+        target_type = 'Doctype'
+        order = 1
+    
+        mock_csv_exporter.files['HAS_DOCTYPE']['writer'].writerow = MagicMock()
+    
+>       CSVExporter.export_relationship(rel_type, source, target, source_type, target_type, order)
+
+tests/importing/test_csv_prep.py:66: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = 'HAS_DOCTYPE', rel_type = 'n1', source = 'd1', target = 'Document'
+source_type = 'Doctype', target_type = 1, order = None
+
+    def export_relationship(
+        self,
+        rel_type: str,
+        source: str,
+        target: str,
+        source_type: str,
+        target_type: str,
+        order: int = None,
+    ):
+        """
+        Exports a relationship to the corresponding CSV file.
+        """
+>       writer = self.files.get(rel_type, {}).get("writer")
+E       AttributeError: 'str' object has no attribute 'files'
+
+src/importing/csv_prep.py:128: AttributeError
+------------------------------ Captured log setup ------------------------------
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/documents.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/doctypes.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/comments.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/texts.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/tags.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/attributes.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_doctype.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_comment.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/contains_text.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/contains_tag.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_root.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_attribute.csv
+---------------------------- Captured log teardown -----------------------------
+DEBUG    CSVPrepLogger:csv_prep.py:150 Closed all CSV files
+____________________ test_export_relationship_without_order ____________________
+
+mock_csv_exporter = <src.importing.csv_prep.CSVExporter object at 0x105da3920>
+
+    def test_export_relationship_without_order(mock_csv_exporter):
+        rel_type = 'HAS_ATTRIBUTE'
+        source = 'n1'
+        target = 'a1'
+        source_type = 'Tag'
+        target_type = 'Attribute'
+    
+        mock_csv_exporter.files['HAS_ATTRIBUTE']['writer'].writerow = MagicMock()
+    
+>       CSVExporter.export_relationship(rel_type, source, target, source_type, target_type)
+E       TypeError: CSVExporter.export_relationship() missing 1 required positional argument: 'target_type'
+
+tests/importing/test_csv_prep.py:79: TypeError
+------------------------------ Captured log setup ------------------------------
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/documents.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/doctypes.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/comments.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/texts.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/tags.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/attributes.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_doctype.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_comment.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/contains_text.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/contains_tag.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_root.csv
+DEBUG    CSVPrepLogger:csv_prep.py:78 Created CSV file: dummy_dir/has_attribute.csv
+---------------------------- Captured log teardown -----------------------------
+DEBUG    CSVPrepLogger:csv_prep.py:150 Closed all CSV files
+_____________________________ test_validate_graph ______________________________
+
+unwrapper = <src.processing.unwrap.Unwrapper object at 0x105ff36b0>
+
+    def test_validate_graph(unwrapper):
+        with patch("networkx.is_directed_acyclic_graph", return_value=True) as mock_validate:
+            unwrapper.validate_graph()
+>           mock_validate.assert_called_once_with(unwrapper.graph)
+
+tests/processing.py/test_unwrap.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:959: in assert_called_once_with
+    return self.assert_called_with(*args, **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='is_directed_acyclic_graph' id='4395579920'>
+args = (<networkx.classes.digraph.DiGraph object at 0x105ff3290>,), kwargs = {}
+expected = call(<networkx.classes.digraph.DiGraph object at 0x105ff3290>)
+actual = call(None)
+_error_message = <function NonCallableMock.assert_called_with.<locals>._error_message at 0x105cfcfe0>
+cause = None
+
+    def assert_called_with(self, /, *args, **kwargs):
+        """assert that the last call was made with the specified arguments.
+    
+        Raises an AssertionError if the args and keyword args passed in are
+        different to the last call to the mock."""
+        if self.call_args is None:
+            expected = self._format_mock_call_signature(args, kwargs)
+            actual = 'not called.'
+            error_message = ('expected call not found.\nExpected: %s\n  Actual: %s'
+                    % (expected, actual))
+            raise AssertionError(error_message)
+    
+        def _error_message():
+            msg = self._format_mock_failure_message(args, kwargs)
+            return msg
+        expected = self._call_matcher(_Call((args, kwargs), two=True))
+        actual = self._call_matcher(self.call_args)
+        if actual != expected:
+            cause = expected if isinstance(expected, Exception) else None
+>           raise AssertionError(_error_message()) from cause
+E           AssertionError: expected call not found.
+E           Expected: is_directed_acyclic_graph(<networkx.classes.digraph.DiGraph object at 0x105ff3290>)
+E             Actual: is_directed_acyclic_graph(None)
+
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:947: AssertionError
+----------------------------- Captured stderr call -----------------------------
+2024-09-28 14:39:34,873 - UnwrapLogger - INFO - Unwrapped graph is a Directed Acyclic Graph (DAG).
+2024-09-28 14:39:34,873 - UnwrapLogger - ERROR - Error validating graph: 'NoneType' object has no attribute 'is_directed'
+Traceback (most recent call last):
+  File "/Users/jluker/aonprd-parse/src/processing/unwrap.py", line 157, in validate_graph
+    if not nx.is_weakly_connected(self.unwrapped_graph):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jluker/aonprd-parse/venv/lib/python3.12/site-packages/networkx/utils/decorators.py", line 845, in func
+    return argmap._lazy_compile(__wrapper)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<class 'networkx.utils.decorators.argmap'> compilation 4", line 3, in argmap_is_weakly_connected_1
+    import gzip
+         ^^^^^^^
+  File "/Users/jluker/aonprd-parse/venv/lib/python3.12/site-packages/networkx/utils/decorators.py", line 86, in _not_implemented_for
+    dval is None or dval == g.is_directed()
+                            ^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'is_directed'
+------------------------------ Captured log call -------------------------------
+INFO     UnwrapLogger:unwrap.py:153 Unwrapped graph is a Directed Acyclic Graph (DAG).
+ERROR    UnwrapLogger:unwrap.py:176 Error validating graph: 'NoneType' object has no attribute 'is_directed'
+Traceback (most recent call last):
+  File "/Users/jluker/aonprd-parse/src/processing/unwrap.py", line 157, in validate_graph
+    if not nx.is_weakly_connected(self.unwrapped_graph):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jluker/aonprd-parse/venv/lib/python3.12/site-packages/networkx/utils/decorators.py", line 845, in func
+    return argmap._lazy_compile(__wrapper)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<class 'networkx.utils.decorators.argmap'> compilation 4", line 3, in argmap_is_weakly_connected_1
+    import gzip
+         ^^^^^^^
+  File "/Users/jluker/aonprd-parse/venv/lib/python3.12/site-packages/networkx/utils/decorators.py", line 86, in _not_implemented_for
+    dval is None or dval == g.is_directed()
+                            ^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'is_directed'
+_______________________ test_validate_graph_with_cycles ________________________
+
+unwrapper = <src.processing.unwrap.Unwrapper object at 0x105fd29c0>
+
+    def test_validate_graph_with_cycles(unwrapper):
+        unwrapper.graph.add_edge('n3', 'n1')  # Introduce a cycle
+        with patch("networkx.is_directed_acyclic_graph", return_value=False) as mock_validate:
+            unwrapper.validate_graph()
+>           mock_validate.assert_called_once_with(unwrapper.graph)
+
+tests/processing.py/test_unwrap.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:959: in assert_called_once_with
+    return self.assert_called_with(*args, **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='is_directed_acyclic_graph' id='4395444048'>
+args = (<networkx.classes.digraph.DiGraph object at 0x105fd1070>,), kwargs = {}
+expected = call(<networkx.classes.digraph.DiGraph object at 0x105fd1070>)
+actual = call(None)
+_error_message = <function NonCallableMock.assert_called_with.<locals>._error_message at 0x105db4540>
+cause = None
+
+    def assert_called_with(self, /, *args, **kwargs):
+        """assert that the last call was made with the specified arguments.
+    
+        Raises an AssertionError if the args and keyword args passed in are
+        different to the last call to the mock."""
+        if self.call_args is None:
+            expected = self._format_mock_call_signature(args, kwargs)
+            actual = 'not called.'
+            error_message = ('expected call not found.\nExpected: %s\n  Actual: %s'
+                    % (expected, actual))
+            raise AssertionError(error_message)
+    
+        def _error_message():
+            msg = self._format_mock_failure_message(args, kwargs)
+            return msg
+        expected = self._call_matcher(_Call((args, kwargs), two=True))
+        actual = self._call_matcher(self.call_args)
+        if actual != expected:
+            cause = expected if isinstance(expected, Exception) else None
+>           raise AssertionError(_error_message()) from cause
+E           AssertionError: expected call not found.
+E           Expected: is_directed_acyclic_graph(<networkx.classes.digraph.DiGraph object at 0x105fd1070>)
+E             Actual: is_directed_acyclic_graph(None)
+
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:947: AssertionError
+----------------------------- Captured stderr call -----------------------------
+2024-09-28 14:39:34,894 - UnwrapLogger - WARNING - Unwrapped graph contains cycles.
+2024-09-28 14:39:34,894 - UnwrapLogger - ERROR - Error validating graph: 'NoneType' object has no attribute 'is_directed'
+Traceback (most recent call last):
+  File "/Users/jluker/aonprd-parse/src/processing/unwrap.py", line 157, in validate_graph
+    if not nx.is_weakly_connected(self.unwrapped_graph):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<class 'networkx.utils.decorators.argmap'> compilation 4", line 3, in argmap_is_weakly_connected_1
+    import gzip
+         ^^^^^^^
+  File "/Users/jluker/aonprd-parse/venv/lib/python3.12/site-packages/networkx/utils/decorators.py", line 86, in _not_implemented_for
+    dval is None or dval == g.is_directed()
+                            ^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'is_directed'
+------------------------------ Captured log call -------------------------------
+WARNING  UnwrapLogger:unwrap.py:155 Unwrapped graph contains cycles.
+ERROR    UnwrapLogger:unwrap.py:176 Error validating graph: 'NoneType' object has no attribute 'is_directed'
+Traceback (most recent call last):
+  File "/Users/jluker/aonprd-parse/src/processing/unwrap.py", line 157, in validate_graph
+    if not nx.is_weakly_connected(self.unwrapped_graph):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<class 'networkx.utils.decorators.argmap'> compilation 4", line 3, in argmap_is_weakly_connected_1
+    import gzip
+         ^^^^^^^
+  File "/Users/jluker/aonprd-parse/venv/lib/python3.12/site-packages/networkx/utils/decorators.py", line 86, in _not_implemented_for
+    dval is None or dval == g.is_directed()
+                            ^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'is_directed'
+__________________________ test_unwrap_matching_nodes __________________________
+
+unwrapper = <src.processing.unwrap.Unwrapper object at 0x10601ac00>
+
+    @pytest.mark.asyncio
+    async def test_unwrap_matching_nodes(unwrapper):
+        criteria = {'type': 'tag', 'name': 'p'}
+>       with patch.object(unwrapper, 'unwrap_matching_nodes_logic', new_callable=AsyncMock) as mock_logic:
+
+tests/processing.py/test_unwrap.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:1461: in __enter__
+    original, local = self.get_original()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <unittest.mock._patch object at 0x10601a930>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <src.processing.unwrap.Unwrapper object at 0x10601ac00> does not have the attribute 'unwrap_matching_nodes_logic'
+
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:1434: AttributeError
+______________________________ test_save_results _______________________________
+
+unwrapper = <src.processing.unwrap.Unwrapper object at 0x1060194c0>
+tmp_path = PosixPath('/private/var/folders/t2/gm5nqszs7fzftplhq7s_h2jc0000gn/T/pytest-of-jluker/pytest-9/test_save_results1')
+
+    @pytest.mark.asyncio
+    async def test_save_results(unwrapper, tmp_path):
+        with patch("src.utils.data_handling.DataHandler.save_yaml", new_callable=AsyncMock) as mock_save_yaml, \
+             patch("src.utils.data_handling.DataHandler.save_pickle", new_callable=AsyncMock) as mock_save_pickle:
+            output_dir = Path("output_dir")
+            unwrapper.unwrapped_data = {'key': 'value'}
+            unwrapper.unwrapped_structure = {'nodes': [], 'edges': []}
+    
+>           await unwrapper.save_results(output_dir)
+E           TypeError: object NoneType can't be used in 'await' expression
+
+tests/processing.py/test_unwrap.py:82: TypeError
+----------------------------- Captured stderr call -----------------------------
+2024-09-28 14:39:34,940 - UnwrapLogger - INFO - Unwrapped data and structure saved successfully.
+------------------------------ Captured log call -------------------------------
+INFO     UnwrapLogger:unwrap.py:193 Unwrapped data and structure saved successfully.
+____________________________ test_load_yaml_failure ____________________________
+
+    @pytest.mark.asyncio
+    async def test_load_yaml_failure():
+        with patch("src.utils.data_handling.open", mock_open()) as mock_file:
+            mock_file.side_effect = Exception("File not found")
+            with patch("src.utils.logging.Logger.get_logger") as mock_logger_get:
+                mock_logger = MagicMock()
+                mock_logger_get.return_value = mock_logger
+>               with pytest.raises(Exception) as excinfo:
+E               Failed: DID NOT RAISE <class 'Exception'>
+
+tests/utils/test_data_handling.py:31: Failed
+------------------------------ Captured log call -------------------------------
+DEBUG    DataHandlingLogger:data_handling.py:21 Loaded YAML data from dummy.yaml
+____________________________ test_save_yaml_success ____________________________
+
+    @pytest.mark.asyncio
+    async def test_save_yaml_success():
+        data = {'key': 'value'}
+        yaml_dump_content = yaml.dump(data, Dumper=yaml.CDumper, default_flow_style=False, allow_unicode=True, sort_keys=False)
+    
+        with patch("src.utils.data_handling.open", mock_open()) as mock_file:
+            with patch("yaml.dump") as mock_yaml_dump:
+>               await DataHandler.save_yaml(data, Path("dummy.yaml"))
+
+tests/utils/test_data_handling.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/utils/data_handling.py:34: in save_yaml
+    await file.write(yaml_content)
+venv/lib/python3.12/site-packages/aiofiles/threadpool/utils.py:43: in method
+    return await self._loop.run_in_executor(self._executor, cb)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = None
+
+    def run(self):
+        if not self.future.set_running_or_notify_cancel():
+            return
+    
+        try:
+>           result = self.fn(*self.args, **self.kwargs)
+E           TypeError: write() argument must be str, not MagicMock
+
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/thread.py:58: TypeError
+----------------------------- Captured stderr call -----------------------------
+2024-09-28 14:39:34,947 - DataHandlingLogger - ERROR - Failed to save YAML to dummy.yaml: write() argument must be str, not MagicMock
+------------------------------ Captured log call -------------------------------
+ERROR    DataHandlingLogger:data_handling.py:37 Failed to save YAML to dummy.yaml: write() argument must be str, not MagicMock
+____________________________ test_save_yaml_failure ____________________________
+
+    @pytest.mark.asyncio
+    async def test_save_yaml_failure():
+        data = {'key': 'value'}
+        with patch("src.utils.data_handling.open", mock_open()) as mock_file:
+            mock_file.side_effect = Exception("Write error")
+            with patch("src.utils.logging.Logger.get_logger") as mock_logger_get:
+                mock_logger = MagicMock()
+                mock_logger_get.return_value = mock_logger
+>               with pytest.raises(Exception) as excinfo:
+E               Failed: DID NOT RAISE <class 'Exception'>
+
+tests/utils/test_data_handling.py:57: Failed
+------------------------------ Captured log call -------------------------------
+DEBUG    DataHandlingLogger:data_handling.py:35 Saved YAML data to dummy.yaml
+___________________________ test_load_pickle_success ___________________________
+
+    @pytest.mark.asyncio
+    async def test_load_pickle_success():
+        mock_data = {'key': 'value'}
+        pickled_data = pickle.dumps(mock_data)
+    
+        with patch("src.utils.data_handling.open", mock_open(read_data=pickled_data)):
+            with patch("pickle.load", return_value=mock_data) as mock_pickle_load:
+                result = await DataHandler.load_pickle(Path("dummy.pickle"))
+>               mock_pickle_load.assert_called_once()
+
+tests/utils/test_data_handling.py:71: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='load' id='4394071488'>
+
+    def assert_called_once(self):
+        """assert that the mock was called only once.
+        """
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to have been called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'load' to have been called once. Called 0 times.
+
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:926: AssertionError
+------------------------------ Captured log call -------------------------------
+DEBUG    DataHandlingLogger:data_handling.py:46 Loaded pickle data from dummy.pickle
+___________________________ test_load_pickle_failure ___________________________
+
+    @pytest.mark.asyncio
+    async def test_load_pickle_failure():
+        with patch("src.utils.data_handling.open", mock_open()) as mock_file:
+            mock_file.side_effect = Exception("Pickle load error")
+            with patch("src.utils.logging.Logger.get_logger") as mock_logger_get:
+                mock_logger = MagicMock()
+                mock_logger_get.return_value = mock_logger
+>               with pytest.raises(Exception) as excinfo:
+E               Failed: DID NOT RAISE <class 'Exception'>
+
+tests/utils/test_data_handling.py:82: Failed
+------------------------------ Captured log call -------------------------------
+DEBUG    DataHandlingLogger:data_handling.py:46 Loaded pickle data from dummy.pickle
+___________________________ test_save_pickle_success ___________________________
+
+    @pytest.mark.asyncio
+    async def test_save_pickle_success():
+        data = {'key': 'value'}
+    
+        with patch("src.utils.data_handling.open", mock_open()) as mock_file:
+            with patch("pickle.dump") as mock_pickle_dump:
+                await DataHandler.save_pickle(data, Path("dummy.pickle"))
+>               mock_pickle_dump.assert_called_once_with(data, mock_file(), protocol=pickle.HIGHEST_PROTOCOL)
+
+tests/utils/test_data_handling.py:95: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='dump' id='4393181760'>
+args = ({'key': 'value'}, <MagicMock name='open()' id='4358351296'>)
+kwargs = {'protocol': 5}
+msg = "Expected 'dump' to be called once. Called 0 times."
+
+    def assert_called_once_with(self, /, *args, **kwargs):
+        """assert that the mock was called exactly once and that that call was
+        with the specified arguments."""
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to be called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'dump' to be called once. Called 0 times.
+
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:958: AssertionError
+------------------------------ Captured log call -------------------------------
+DEBUG    DataHandlingLogger:data_handling.py:60 Saved pickle data to dummy.pickle
+___________________________ test_save_pickle_failure ___________________________
+
+    @pytest.mark.asyncio
+    async def test_save_pickle_failure():
+        data = {'key': 'value'}
+        with patch("src.utils.data_handling.open", mock_open()) as mock_file:
+            mock_file.side_effect = Exception("Pickle write error")
+            with patch("src.utils.logging.Logger.get_logger") as mock_logger_get:
+                mock_logger = MagicMock()
+                mock_logger_get.return_value = mock_logger
+>               with pytest.raises(Exception) as excinfo:
+E               Failed: DID NOT RAISE <class 'Exception'>
+
+tests/utils/test_data_handling.py:107: Failed
+------------------------------ Captured log call -------------------------------
+DEBUG    DataHandlingLogger:data_handling.py:60 Saved pickle data to dummy.pickle
+_________________________ test_read_file_async_failure _________________________
+
+    @pytest.mark.asyncio
+    async def test_read_file_async_failure():
+        mock_aiofiles = AsyncMock()
+        mock_aiofiles.__aenter__.side_effect = Exception("Read error")
+    
+        with patch("src.utils.file_operations.aiofiles.open", return_value=mock_aiofiles):
+            with pytest.raises(Exception) as excinfo:
+                await FileOperations.read_file_async(Path("dummy.txt"))
+>           assert "Failed to read file asynchronously" in str(excinfo.value)
+E           AssertionError: assert 'Failed to read file asynchronously' in 'Read error'
+E            +  where 'Read error' = str(Exception('Read error'))
+E            +    where Exception('Read error') = <ExceptionInfo Exception('Read error') tblen=3>.value
+
+tests/utils/test_file_operations.py:30: AssertionError
+----------------------------- Captured stderr call -----------------------------
+2024-09-28 14:39:34,992 - FileOperationsLogger - ERROR - Failed to read file asynchronously dummy.txt: Read error
+Traceback (most recent call last):
+  File "/Users/jluker/aonprd-parse/src/utils/file_operations.py", line 19, in read_file_async
+    async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2269, in _execute_mock_call
+    raise effect
+Exception: Read error
+------------------------------ Captured log call -------------------------------
+ERROR    FileOperationsLogger:file_operations.py:24 Failed to read file asynchronously dummy.txt: Read error
+Traceback (most recent call last):
+  File "/Users/jluker/aonprd-parse/src/utils/file_operations.py", line 19, in read_file_async
+    async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2269, in _execute_mock_call
+    raise effect
+Exception: Read error
+________________________ test_write_file_async_failure _________________________
+
+    @pytest.mark.asyncio
+    async def test_write_file_async_failure():
+        mock_aiofiles = AsyncMock()
+        mock_aiofiles.__aenter__.return_value.write.side_effect = Exception("Write error")
+    
+        with patch("src.utils.file_operations.aiofiles.open", return_value=mock_aiofiles):
+            with pytest.raises(Exception) as excinfo:
+                await FileOperations.write_file_async(Path("dummy.txt"), "Content")
+>           assert "Failed to write file asynchronously" in str(excinfo.value)
+E           AssertionError: assert 'Failed to write file asynchronously' in 'Write error'
+E            +  where 'Write error' = str(Exception('Write error'))
+E            +    where Exception('Write error') = <ExceptionInfo Exception('Write error') tblen=3>.value
+
+tests/utils/test_file_operations.py:54: AssertionError
+----------------------------- Captured stderr call -----------------------------
+2024-09-28 14:39:34,994 - FileOperationsLogger - ERROR - Failed to write file asynchronously dummy.txt: Write error
+Traceback (most recent call last):
+  File "/Users/jluker/aonprd-parse/src/utils/file_operations.py", line 34, in write_file_async
+    await f.write(content)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2269, in _execute_mock_call
+    raise effect
+Exception: Write error
+------------------------------ Captured log call -------------------------------
+ERROR    FileOperationsLogger:file_operations.py:37 Failed to write file asynchronously dummy.txt: Write error
+Traceback (most recent call last):
+  File "/Users/jluker/aonprd-parse/src/utils/file_operations.py", line 34, in write_file_async
+    await f.write(content)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 2269, in _execute_mock_call
+    raise effect
+Exception: Write error
+___________________________ test_copy_async_failure ____________________________
+
+    @pytest.mark.asyncio
+    async def test_copy_async_failure():
+        with patch("src.utils.file_operations.shutil.copy2", side_effect=Exception("Copy error")) as mock_copy2:
+            with pytest.raises(Exception) as excinfo:
+                await FileOperations.copy_async(Path("source.txt"), Path("destination.txt"))
+>           assert "Failed to copy file asynchronously" in str(excinfo.value)
+E           AssertionError: assert 'Failed to copy file asynchronously' in 'Copy error'
+E            +  where 'Copy error' = str(Exception('Copy error'))
+E            +    where Exception('Copy error') = <ExceptionInfo Exception('Copy error') tblen=7>.value
+
+tests/utils/test_file_operations.py:70: AssertionError
+----------------------------- Captured stderr call -----------------------------
+2024-09-28 14:39:34,997 - FileOperationsLogger - ERROR - Failed to copy file asynchronously from source.txt to destination.txt: Copy error
+Traceback (most recent call last):
+  File "/Users/jluker/aonprd-parse/src/utils/file_operations.py", line 46, in copy_async
+    await asyncio.to_thread(shutil.copy2, source, destination)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1137, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1141, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1196, in _execute_mock_call
+    raise effect
+Exception: Copy error
+------------------------------ Captured log call -------------------------------
+ERROR    FileOperationsLogger:file_operations.py:49 Failed to copy file asynchronously from source.txt to destination.txt: Copy error
+Traceback (most recent call last):
+  File "/Users/jluker/aonprd-parse/src/utils/file_operations.py", line 46, in copy_async
+    await asyncio.to_thread(shutil.copy2, source, destination)
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1137, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1141, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py", line 1196, in _execute_mock_call
+    raise effect
+Exception: Copy error
+___________________________ test_apply_replacements ____________________________
+
+    def test_apply_replacements():
+        content = "Hello <<World>>!"
+        replacements = {"<<": "<", ">>": ">"}
+        expected_content = "Hello <World>!"
+    
+        # Assuming apply_replacements is a synchronous method
+>       modified_content, applied_replacements = FileOperations.apply_replacements(
+            content, replacements
+        )
+E       TypeError: cannot unpack non-iterable coroutine object
+
+tests/utils/test_file_operations.py:80: TypeError
+______________________ test_apply_replacements_no_changes ______________________
+
+    def test_apply_replacements_no_changes():
+        content = "Hello World!"
+        replacements = {"<<": "<", ">>": ">"}
+        expected_content = "Hello World!"
+    
+>       modified_content, applied_replacements = FileOperations.apply_replacements(
+            content, replacements
+        )
+E       TypeError: cannot unpack non-iterable coroutine object
+
+tests/utils/test_file_operations.py:92: TypeError
+_________________________ test_ensure_directory_exists _________________________
+
+    def test_ensure_directory_exists():
+        with patch("pathlib.Path.mkdir") as mock_mkdir:
+            directory = Path("/fake/directory")
+            FileOperations.ensure_directory(directory)
+>           mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
+
+tests/utils/test_file_operations.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MagicMock name='mkdir' id='4395450048'>, args = ()
+kwargs = {'exist_ok': True, 'parents': True}
+msg = "Expected 'mkdir' to be called once. Called 0 times."
+
+    def assert_called_once_with(self, /, *args, **kwargs):
+        """assert that the mock was called exactly once and that that call was
+        with the specified arguments."""
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to be called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'mkdir' to be called once. Called 0 times.
+
+/opt/homebrew/Cellar/python@3.12/3.12.5/Frameworks/Python.framework/Versions/3.12/lib/python3.12/unittest/mock.py:958: AssertionError
+________________________ test_ensure_directory_failure _________________________
+
+    def test_ensure_directory_failure():
+        with patch("pathlib.Path.mkdir", side_effect=Exception("mkdir error")):
+            with patch("src.utils.logging.Logger.get_logger") as mock_logger_get:
+                mock_logger = MagicMock()
+                mock_logger_get.return_value = mock_logger
+>               with pytest.raises(Exception) as excinfo:
+E               Failed: DID NOT RAISE <class 'Exception'>
+
+tests/utils/test_file_operations.py:111: Failed
+=============================== warnings summary ===============================
+venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291
+  /Users/jluker/aonprd-parse/venv/lib/python3.12/site-packages/pydantic/_internal/_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+tests/decomposing/test_decomposer.py::test_save_results
+  /Users/jluker/aonprd-parse/src/decomposing/decomposer.py:131: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    DataHandler.save_yaml(self.data, data_yaml_path)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/decomposing/test_decomposer.py::test_save_results
+  /Users/jluker/aonprd-parse/src/decomposing/decomposer.py:132: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    DataHandler.save_yaml(self.structure, structure_yaml_path)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/decomposing/test_decomposer.py::test_save_results
+  /Users/jluker/aonprd-parse/src/decomposing/decomposer.py:133: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    DataHandler.save_pickle(self.data, data_pickle_path)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/decomposing/test_decomposer.py::test_save_results
+  /Users/jluker/aonprd-parse/src/decomposing/decomposer.py:134: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    DataHandler.save_pickle(self.structure, structure_pickle_path)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/processing.py/test_unwrap.py::test_save_results
+  /Users/jluker/aonprd-parse/src/processing/unwrap.py:180: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    DataHandler.save_yaml(
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/processing.py/test_unwrap.py::test_save_results
+  /Users/jluker/aonprd-parse/src/processing/unwrap.py:183: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    DataHandler.save_yaml(
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/processing.py/test_unwrap.py::test_save_results
+  /Users/jluker/aonprd-parse/src/processing/unwrap.py:186: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    DataHandler.save_pickle(
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/processing.py/test_unwrap.py::test_save_results
+  /Users/jluker/aonprd-parse/src/processing/unwrap.py:189: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    DataHandler.save_pickle(
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/utils/test_file_operations.py::test_apply_replacements
+  /Users/jluker/aonprd-parse/tests/utils/test_file_operations.py:80: RuntimeWarning: coroutine 'FileOperations.apply_replacements' was never awaited
+    modified_content, applied_replacements = FileOperations.apply_replacements(
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/utils/test_file_operations.py::test_apply_replacements_no_changes
+  /Users/jluker/aonprd-parse/tests/utils/test_file_operations.py:92: RuntimeWarning: coroutine 'FileOperations.apply_replacements' was never awaited
+    modified_content, applied_replacements = FileOperations.apply_replacements(
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/utils/test_file_operations.py::test_ensure_directory_exists
+  /Users/jluker/aonprd-parse/tests/utils/test_file_operations.py:102: RuntimeWarning: coroutine 'FileOperations.ensure_directory' was never awaited
+    FileOperations.ensure_directory(directory)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/utils/test_file_operations.py::test_ensure_directory_failure
+  /Users/jluker/aonprd-parse/tests/utils/test_file_operations.py:112: RuntimeWarning: coroutine 'FileOperations.ensure_directory' was never awaited
+    FileOperations.ensure_directory(Path("/fake/directory"))
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/cleaning/test_manual_cleaning.py::test_get_html_file_mapping - T...
+FAILED tests/cleaning/test_manual_cleaning.py::test_insert_canonical_mapping
+FAILED tests/cleaning/test_manual_cleaning.py::test_get_skip_files - TypeErro...
+FAILED tests/cleaning/test_manual_cleaning.py::test_process_file_async_skip_file
+FAILED tests/cleaning/test_manual_cleaning.py::test_clean_and_copy_files_async
+FAILED tests/decomposing/test_decomposer.py::test_process_element - Assertion...
+FAILED tests/decomposing/test_decomposer.py::test_run_with_files - AssertionE...
+FAILED tests/decomposing/test_decomposer.py::test_save_results - TypeError: o...
+FAILED tests/decomposing/test_decomposer.py::test_create_node - TypeError: ob...
+FAILED tests/decomposing/test_decomposer.py::test_create_edge - TypeError: ob...
+FAILED tests/importing/test_csv_prep.py::test_export_node - TypeError: CSVExp...
+FAILED tests/importing/test_csv_prep.py::test_export_attribute - TypeError: C...
+FAILED tests/importing/test_csv_prep.py::test_export_relationship_with_order
+FAILED tests/importing/test_csv_prep.py::test_export_relationship_without_order
+FAILED tests/processing.py/test_unwrap.py::test_validate_graph - AssertionErr...
+FAILED tests/processing.py/test_unwrap.py::test_validate_graph_with_cycles - ...
+FAILED tests/processing.py/test_unwrap.py::test_unwrap_matching_nodes - Attri...
+FAILED tests/processing.py/test_unwrap.py::test_save_results - TypeError: obj...
+FAILED tests/utils/test_data_handling.py::test_load_yaml_failure - Failed: DI...
+FAILED tests/utils/test_data_handling.py::test_save_yaml_success - TypeError:...
+FAILED tests/utils/test_data_handling.py::test_save_yaml_failure - Failed: DI...
+FAILED tests/utils/test_data_handling.py::test_load_pickle_success - Assertio...
+FAILED tests/utils/test_data_handling.py::test_load_pickle_failure - Failed: ...
+FAILED tests/utils/test_data_handling.py::test_save_pickle_success - Assertio...
+FAILED tests/utils/test_data_handling.py::test_save_pickle_failure - Failed: ...
+FAILED tests/utils/test_file_operations.py::test_read_file_async_failure - As...
+FAILED tests/utils/test_file_operations.py::test_write_file_async_failure - A...
+FAILED tests/utils/test_file_operations.py::test_copy_async_failure - Asserti...
+FAILED tests/utils/test_file_operations.py::test_apply_replacements - TypeErr...
+FAILED tests/utils/test_file_operations.py::test_apply_replacements_no_changes
+FAILED tests/utils/test_file_operations.py::test_ensure_directory_exists - As...
+FAILED tests/utils/test_file_operations.py::test_ensure_directory_failure - F...
+ERROR tests/cleaning/test_manual_cleaning.py::test_process_file_async_with_replacements
+ERROR tests/cleaning/test_manual_cleaning.py::test_process_file_async_no_replacements
+============= 32 failed, 13 passed, 13 warnings, 2 errors in 1.99s =============

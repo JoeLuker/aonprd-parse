@@ -1,0 +1,3 @@
+[tool.ruff]
+# Enable autofix
+fix = true

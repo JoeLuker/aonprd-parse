@@ -8,31 +8,35 @@ from typing import Tuple, Set, Dict, List
 
 from src.utils.logging import Logger
 
-logger = Logger.get_logger('FileOperationsLogger')
+logger = Logger.get_logger("FileOperationsLogger")
+
 
 class FileOperations:
-
     @staticmethod
     async def read_file_async(file_path: Path) -> str:
         """Asynchronously read a file's content."""
         try:
-            async with aiofiles.open(file_path, 'r', encoding='utf-8') as f:
+            async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
                 content = await f.read()
             logger.debug(f"Read file asynchronously: {file_path}")
             return content
         except Exception as e:
-            logger.error(f"Failed to read file asynchronously {file_path}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to read file asynchronously {file_path}: {e}", exc_info=True
+            )
             raise
 
     @staticmethod
     async def write_file_async(file_path: Path, content: str):
         """Asynchronously write content to a file."""
         try:
-            async with aiofiles.open(file_path, 'w', encoding='utf-8') as f:
+            async with aiofiles.open(file_path, "w", encoding="utf-8") as f:
                 await f.write(content)
             logger.debug(f"Wrote file asynchronously: {file_path}")
         except Exception as e:
-            logger.error(f"Failed to write file asynchronously {file_path}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to write file asynchronously {file_path}: {e}", exc_info=True
+            )
             raise
 
     @staticmethod
@@ -42,11 +46,16 @@ class FileOperations:
             await asyncio.to_thread(shutil.copy2, source, destination)
             logger.debug(f"Copied file asynchronously from {source} to {destination}")
         except Exception as e:
-            logger.error(f"Failed to copy file asynchronously from {source} to {destination}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to copy file asynchronously from {source} to {destination}: {e}",
+                exc_info=True,
+            )
             raise
 
     @staticmethod
-    async def apply_replacements(content: str, replacements: Dict[str, str]) -> Tuple[str, Set[str]]:
+    async def apply_replacements(
+        content: str, replacements: Dict[str, str]
+    ) -> Tuple[str, Set[str]]:
         """Apply string replacements to content asynchronously."""
         applied_replacements = set()
         for old, new in replacements.items():
@@ -93,5 +102,8 @@ class FileOperations:
             await asyncio.to_thread(shutil.move, source, destination)
             logger.debug(f"Moved file from {source} to {destination}")
         except Exception as e:
-            logger.error(f"Failed to move file from {source} to {destination}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to move file from {source} to {destination}: {e}",
+                exc_info=True,
+            )
             raise

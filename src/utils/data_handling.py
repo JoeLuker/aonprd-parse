@@ -8,13 +8,14 @@ from typing import Dict, Any
 
 from src.utils.logging import Logger
 
-logger = Logger.get_logger('DataHandlingLogger')
+logger = Logger.get_logger("DataHandlingLogger")
+
 
 class DataHandler:
     @staticmethod
     async def load_yaml(filepath: Path) -> Dict[str, Any]:
         try:
-            async with aiofiles.open(filepath, 'r', encoding='utf-8') as file:
+            async with aiofiles.open(filepath, "r", encoding="utf-8") as file:
                 content = await file.read()
                 data = yaml.safe_load(content)
             logger.debug(f"Loaded YAML data from {filepath}")
@@ -26,8 +27,10 @@ class DataHandler:
     @staticmethod
     async def save_yaml(data: Dict[str, Any], filepath: Path):
         try:
-            yaml_content = yaml.dump(data, default_flow_style=False, allow_unicode=True, sort_keys=False)
-            async with aiofiles.open(filepath, 'w', encoding='utf-8') as file:
+            yaml_content = yaml.dump(
+                data, default_flow_style=False, allow_unicode=True, sort_keys=False
+            )
+            async with aiofiles.open(filepath, "w", encoding="utf-8") as file:
                 await file.write(yaml_content)
             logger.debug(f"Saved YAML data to {filepath}")
         except Exception as e:
@@ -37,7 +40,7 @@ class DataHandler:
     @staticmethod
     async def load_pickle(filepath: Path) -> Any:
         try:
-            async with aiofiles.open(filepath, 'rb') as file:
+            async with aiofiles.open(filepath, "rb") as file:
                 content = await file.read()
                 data = await asyncio.to_thread(pickle.loads, content)
             logger.debug(f"Loaded pickle data from {filepath}")
@@ -49,8 +52,10 @@ class DataHandler:
     @staticmethod
     async def save_pickle(data: Any, filepath: Path):
         try:
-            pickled_data = await asyncio.to_thread(pickle.dumps, data, protocol=pickle.HIGHEST_PROTOCOL)
-            async with aiofiles.open(filepath, 'wb') as file:
+            pickled_data = await asyncio.to_thread(
+                pickle.dumps, data, protocol=pickle.HIGHEST_PROTOCOL
+            )
+            async with aiofiles.open(filepath, "wb") as file:
                 await file.write(pickled_data)
             logger.debug(f"Saved pickle data to {filepath}")
         except Exception as e:

@@ -1,0 +1,38 @@
+# TODO
+
+Based on the provided files and their current state, here's what still needs to be updated or addressed:
+
+1. tests/cleaning/test_manual_cleaning.py and tests/cleaning/test_cleaner.py:
+   - These test files might need to be created or updated to match the new async structure of the cleaning modules.
+
+2. tests/importing/test_memgraph.py:
+   - This test file might need to be created or updated to test the new async MemgraphImporter class.
+
+3. src/cleaning/cleaner.py:
+   - This file might need further review to ensure it's fully aligned with the manual_cleaning.py structure and using the new config properly.
+
+4. src/importing/csv_prep.py:
+   - The main() function is still synchronous. Consider making it async to match the pattern of other modules.
+
+5. tests/processing/test_unwrap.py:
+   - This file might need updates to test the new async methods in the Unwrapper class.
+
+6. requirements.txt:
+   - This file wasn't shown in the provided files, but it should be updated to include all necessary dependencies, including asyncio, aiofiles, and any other new libraries used.
+
+7. .gitignore:
+   - This file wasn't shown, but it should be checked to ensure it's properly ignoring cache files, logs, and other non-version controlled files.
+
+8. setup.py or pyproject.toml:
+   - These files weren't shown, but one of them should be created or updated for proper packaging of the project.
+
+9. CI/CD configuration:
+    - If you're using any CI/CD tools, their configuration files should be updated to run the new async tests and handle the new project structure.
+
+10. src/process.py:
+    - This file looks good, but you might want to add more detailed logging or progress reporting as it runs through each stage of the pipeline.
+
+11. Documentation:
+    - Consider adding more inline documentation or docstrings to the new async methods, especially in complex classes like MemgraphImporter.
+
+Remember to run all tests after making these updates to ensure everything is working as expected with the new async structure and config system.
