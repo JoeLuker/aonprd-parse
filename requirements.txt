@@ -1,0 +1,11 @@
+beautifulsoup4==4.11.2
+networkx==3.1
+tqdm==4.65.0
+PyYAML==6.0
+aiosqlite==0.17.0
+aiofiles==23.1.0
+uvloop==0.17.0
+gqlalchemy==1.1.1
+rapidfuzz==2.13.6
+xxhash==3.3.4
+memgraph==2.0.0
