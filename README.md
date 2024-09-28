@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # aonprd-parse
 Parsing aonprd 1e data into a memgraph, and perhaps more
 =======
@@ -117,4 +116,3 @@ Contributions are welcome! Please fork the repository and submit a pull request.
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
->>>>>>> 9fdccd5 (Initial commit: Set up project structure and configurations)
