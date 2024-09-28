@@ -162,3 +162,4 @@ cython_debug/
 #.idea/
 data/raw_html_data/*.html
 data/consolidated/crawler_state.db
+data/raw_html_data/*.html
