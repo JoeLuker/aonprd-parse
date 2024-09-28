@@ -1,0 +1,42 @@
+# config/config.yaml
+paths:
+  input_folder: "data/raw_html_data"
+  manual_cleaned_html_data: "data/manual_cleaned_html_data"
+  consolidated_dir: "data/consolidated"
+  log_dir: "logs"
+  decomposed_output_dir: "data/decomposed"
+  condensed_output_dir: "data/condensed"
+  processing_output_dir: "data/processed"
+  import_files_dir: "data/import_files"
+
+processing:
+  max_files: 35000
+  similarity_threshold: 0.99
+  max_workers: 16
+
+files:
+  data_pickle: "data.pickle"
+  structure_pickle: "structure.pickle"
+  filtered_data_pickle: "filtered_data.pickle"
+  filtered_structure_pickle: "filtered_structure.pickle"
+  data_yaml: "data.yaml"
+  structure_yaml: "structure.yaml"
+  filtered_data_yaml: "filtered_data.yaml"
+  filtered_structure_yaml: "filtered_structure.yaml"
+
+database:
+  consolidated_html_db: "data/consolidated/consolidated_html_data.db"
+  crawler_db: "data/consolidated/crawler_state.db"
+
+memgraph:
+  host: "localhost"
+  port: 7687
+  batch_size: 1000
+
+logging:
+  processor_log: "html_processor.log"
+  csv_prep_log: "yaml_csv_prep.log"
+  memgraph_importer_log: "memgraph_importer.log"
+  unwrap_log: "unwrap_matching_nodes.log"
+  console_level: "INFO"
+  file_level: "DEBUG"

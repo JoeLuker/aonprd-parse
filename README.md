@@ -1,7 +1,4 @@
 # aonprd-parse
-Parsing aonprd 1e data into a memgraph, and perhaps more
-=======
-# Explore AONPRD
 
 A comprehensive data processing pipeline for cleaning, parsing, deduplicating HTML data, and importing it into Memgraph.
 
@@ -19,7 +16,7 @@ A comprehensive data processing pipeline for cleaning, parsing, deduplicating HT
 
 ## Introduction
 
-This project processes HTML data through various stages including manual cleaning, decomposing into graph structures, deduplication, and importing into Memgraph for advanced querying and analysis.
+This project processes HTML data through various stages including manual cleaning, decomposing into graph structures, deduplication, and importing into Memgraph for advanced querying and analysis. It utilizes asynchronous programming for improved performance.
 
 ## Features
 
@@ -29,37 +26,56 @@ This project processes HTML data through various stages including manual cleanin
 - **CSV Preparation:** Converts graph data into CSV files suitable for Memgraph import.
 - **Memgraph Integration:** Imports processed data into Memgraph with defined relationships.
 - **Logging:** Comprehensive logging at each processing stage for easy debugging and monitoring.
+- **Asynchronous Processing:** Utilizes asyncio for improved performance in I/O-bound operations.
 
 ## Project Structure
 
-```
-explore-aonprd/
+```text
+aonprd-parse/
 ├── config/
-│   └── config.py
+│   ├── config.py
+│   └── config.yaml
+├── src/
+│   ├── cleaning/
+│   │   ├── __init__.py
+│   │   ├── manual_cleaning.py
+│   │   └── cleaner.py
+│   ├── decomposing/
+│   │   ├── __init__.py
+│   │   ├── decomposer.py
+│   │   └── condense_decomposition.py
+│   ├── importing/
+│   │   ├── __init__.py
+│   │   ├── csv_prep.py
+│   │   └── memgraph.py
+│   ├── processing/
+│   │   ├── __init__.py
+│   │   └── unwrap.py
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── logging.py
+│   │   ├── file_operations.py
+│   │   └── data_handling.py
+│   ├── __init__.py
+│   └── process.py
+├── tests/
+│   ├── cleaning/
+│   ├── decomposing/
+│   ├── importing/
+│   ├── processing/
+│   └── utils/
 ├── data/
 │   ├── raw_html_data/
-│   ├── consolidated/
-│   │   └── import_files/
-│   └── ...
-├── scripts/
-│   ├── csv_prep.py
-│   ├── cleaner.py
-│   ├── condense_decomposition.py
-│   ├── decomposer.py
-│   ├── memgraph.py
-│   ├── manual_cleaning.py
-│   ├── process.py
-│   ├── unwrap.py
-│   └── ...
-├── utils/
-│   └── utils.py
+│   ├── manual_cleaned_html_data/
+│   ├── decomposed/
+│   ├── condensed/
+│   ├── processed/
+│   └── import_files/
 ├── logs/
-│   └── ... (Log files will be here)
-├── tests/
-│   └── ... (Unit and integration tests)
 ├── .gitignore
 ├── README.md
-└── requirements.txt
+├── requirements.txt
+└── pytest.ini
 ```
 
 ## Installation
@@ -67,13 +83,11 @@ explore-aonprd/
 1. **Clone the Repository:**
 
    ```bash
-   git clone https://github.com/yourusername/explore-aonprd.git
-   cd explore-aonprd
+   git clone https://github.com/yourusername/aonprd-parse.git
+   cd aonprd-parse
    ```
 
 2. **Set Up Virtual Environment:**
-
-   It's recommended to use a virtual environment to manage dependencies.
 
    ```bash
    python3 -m venv venv
@@ -91,23 +105,18 @@ explore-aonprd/
 Run the main processing script to execute the entire pipeline:
 
 ```bash
-python scripts/process.py
+python src/process.py
 ```
 
 **Note:** Ensure that all required directories and database files exist before running the scripts.
 
 ## Configuration
 
-All configuration parameters are centralized in `config/config.py`. Adjust paths, logging configurations, and processing limits as needed.
+All configuration parameters are centralized in `config/config.py` and `config/config.yaml`. Adjust paths, logging configurations, and processing limits as needed.
 
 ## Logging
 
-Logs are stored in the `logs/` directory. Each script generates its own log file for easy tracking:
-
-- `html_processor.log`
-- `memgraph_importer.log`
-- `unwrap_matching_nodes.log`
-- `yaml_csv_prep.log`
+Logs are stored in the `logs/` directory. Each script generates its own log file for easy tracking. Log levels can be adjusted in the configuration files.
 
 ## Contributing
 
