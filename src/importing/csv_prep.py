@@ -1,10 +1,8 @@
 # src/importing/csv_prep.py
 
+import asyncio
 import csv
 import json
-import io
-import cProfile
-import pstats
 from pathlib import Path
 from typing import Dict, Any
 
@@ -81,7 +79,7 @@ class CSVExporter:
                 files[key] = {"file": None, "writer": None}
         return files
 
-    def export_node(self, node_type: str, node_id: str, properties: Dict[str, Any]):
+    async def export_node(self, node_type: str, node_id: str, properties: Dict[str, Any]):
         """
         Exports a node to the corresponding CSV file.
         """
@@ -90,18 +88,16 @@ class CSVExporter:
             logger.warning(f"No CSV writer found for node type: {node_type}")
             return
         if node_type == "Tag":
-            writer.writerow(
-                [
-                    node_id,
-                    properties.get("name", ""),
-                    properties.get("attributes_id", ""),
-                ]
-            )
+            await asyncio.to_thread(writer.writerow, [
+                node_id,
+                properties.get("name", ""),
+                properties.get("attributes_id", ""),
+            ])
         else:
-            writer.writerow([node_id] + list(properties.values()))
+            await asyncio.to_thread(writer.writerow, [node_id] + list(properties.values()))
         logger.debug(f"Exported node: {node_type} with ID {node_id}")
 
-    def export_attribute(self, attribute_id: str, attributes: Dict[str, Any]):
+    async def export_attribute(self, attribute_id: str, attributes: Dict[str, Any]):
         """
         Exports an attribute to the attributes CSV file.
         """
@@ -109,10 +105,10 @@ class CSVExporter:
         if not writer:
             logger.warning("No CSV writer found for attributes")
             return
-        writer.writerow([attribute_id, json.dumps(attributes)])
+        await asyncio.to_thread(writer.writerow, [attribute_id, json.dumps(attributes)])
         logger.debug(f"Exported attribute: {attribute_id}")
 
-    def export_relationship(
+    async def export_relationship(
         self,
         rel_type: str,
         source: str,
@@ -129,12 +125,12 @@ class CSVExporter:
             logger.warning(f"No CSV writer found for relationship type: {rel_type}")
             return
         if order is not None:
-            writer.writerow([source, target, source_type, target_type, order])
+            await asyncio.to_thread(writer.writerow, [source, target, source_type, target_type, order])
         else:
-            writer.writerow([source, target, source_type, target_type])
+            await asyncio.to_thread(writer.writerow, [source, target, source_type, target_type])
         logger.debug(f"Exported relationship: {rel_type} from {source} to {target}")
 
-    def close(self):
+    async def close(self):
         """
         Closes all open CSV files.
         """
@@ -142,31 +138,57 @@ class CSVExporter:
             file = file_dict.get("file")
             if file:
                 try:
-                    file.close()
+                    await asyncio.to_thread(file.close)
                     logger.debug(f"Closed CSV file for {rel_type}")
                 except Exception as e:
                     logger.error(f"Failed to close CSV file for {rel_type}: {e}")
         logger.debug("Closed all CSV files")
 
 
-class CSVPrep:
+class CSVPreparation:
     """
     Prepares CSV files from the structured data for Memgraph import.
     """
 
-    def __init__(
-        self, structure: Dict[str, Any], data: Dict[str, Any], exporter: CSVExporter
-    ):
-        self.structure = structure
-        self.data = data
-        self.exporter = exporter
+    def __init__(self):
+        self.structure = None
+        self.data = None
+        self.exporter = None
         self.node_id_map: Dict[str, str] = {}
+        self.logger = logger
 
-    def prepare_nodes(self):
-        """
-        Exports nodes to their respective CSV files.
-        """
-        logger.info("Preparing node CSV files...")
+    async def run(self):
+        self.logger.info("Starting CSV Preparation Process...")
+        await self.load_data()
+        await self.prepare_nodes()
+        await self.prepare_attributes()
+        await self.prepare_relationships()
+        await self.exporter.close()
+        self.logger.info("CSV Preparation Process Completed.")
+
+    async def load_data(self):
+        self.logger.info("Loading data from Pickle files...")
+        structure_pickle_path = (
+            config.paths.condensed_output_dir / f"unwrapped_{config.files.structure_pickle}"
+        )
+        data_pickle_path = (
+            config.paths.condensed_output_dir / f"unwrapped_{config.files.data_pickle}"
+        )
+        try:
+            self.structure = await DataHandler.load_pickle(structure_pickle_path)
+            self.data = await DataHandler.load_pickle(data_pickle_path)
+        except Exception as e:
+            self.logger.error(f"Failed to load pickles: {e}")
+            return
+
+        if not self.structure or not self.data:
+            self.logger.error("Loaded data is empty. Exiting CSV preparation.")
+            return
+
+        self.exporter = CSVExporter(config.paths.import_files_dir)
+
+    async def prepare_nodes(self):
+        self.logger.info("Preparing node CSV files...")
         for node in tqdm(self.structure.get("nodes", []), desc="Exporting Nodes"):
             node_id = node.get("id", "")
             node_type_raw = node.get("type", "").lower()
@@ -183,40 +205,40 @@ class CSVPrep:
                 try:
                     if node_type == "Document":
                         filename = node.get("filename", "")
-                        self.exporter.export_node(
+                        await self.exporter.export_node(
                             "Document", node_id, {"filename": filename}
                         )
                     elif node_type == "Doctype":
                         doctype_content = self.data["doctypes"].get(
                             node.get("data_id", ""), ""
                         )
-                        self.exporter.export_node(
+                        await self.exporter.export_node(
                             "Doctype", node_id, {"doctype": doctype_content}
                         )
                     elif node_type == "Comment":
                         comment_content = self.data["comments"].get(
                             node.get("data_id", ""), ""
                         )
-                        self.exporter.export_node(
+                        await self.exporter.export_node(
                             "Comment", node_id, {"comment": comment_content}
                         )
                     elif node_type == "TextNode":
                         text_content = self.data["texts"].get(
                             node.get("data_id", ""), ""
                         )
-                        self.exporter.export_node(
+                        await self.exporter.export_node(
                             "TextNode", node_id, {"content": text_content}
                         )
                     elif node_type == "Tag":
                         tag_name = node.get("name", "")
                         attributes_id = node.get("attributes_id", "")
-                        self.exporter.export_node(
+                        await self.exporter.export_node(
                             "Tag",
                             node_id,
                             {"name": tag_name, "attributes_id": attributes_id},
                         )
                         if attributes_id:
-                            self.exporter.export_relationship(
+                            await self.exporter.export_relationship(
                                 "HAS_ATTRIBUTE",
                                 node_id,
                                 attributes_id,
@@ -224,28 +246,22 @@ class CSVPrep:
                                 "Attribute",
                             )
                 except Exception as e:
-                    logger.error(f"Error exporting node {node_id}: {e}")
+                    self.logger.error(f"Error exporting node {node_id}: {e}")
             else:
-                logger.warning(f"Unknown node type: {node_type_raw} for node {node}")
+                self.logger.warning(f"Unknown node type: {node_type_raw} for node {node}")
 
-    def prepare_attributes(self):
-        """
-        Exports attributes to the attributes CSV file.
-        """
-        logger.info("Preparing attributes CSV file...")
+    async def prepare_attributes(self):
+        self.logger.info("Preparing attributes CSV file...")
         for attribute_id, attributes in tqdm(
             self.data.get("attributes", {}).items(), desc="Exporting Attributes"
         ):
             try:
-                self.exporter.export_attribute(attribute_id, attributes)
+                await self.exporter.export_attribute(attribute_id, attributes)
             except Exception as e:
-                logger.error(f"Error exporting attribute {attribute_id}: {e}")
+                self.logger.error(f"Error exporting attribute {attribute_id}: {e}")
 
-    def prepare_relationships(self):
-        """
-        Exports relationships to their respective CSV files.
-        """
-        logger.info("Preparing relationship CSV files...")
+    async def prepare_relationships(self):
+        self.logger.info("Preparing relationship CSV files...")
         for edge in tqdm(
             self.structure.get("edges", []), desc="Exporting Relationships"
         ):
@@ -270,11 +286,11 @@ class CSVPrep:
                 csv_rel_type = rel_map.get(relationship, None)
                 if csv_rel_type:
                     if csv_rel_type == "HAS_ATTRIBUTE":
-                        self.exporter.export_relationship(
+                        await self.exporter.export_relationship(
                             csv_rel_type, source, target, source_type, "Attribute"
                         )
                     else:
-                        self.exporter.export_relationship(
+                        await self.exporter.export_relationship(
                             csv_rel_type,
                             source,
                             target,
@@ -283,71 +299,15 @@ class CSVPrep:
                             order,
                         )
                 else:
-                    logger.warning(f"Unknown relationship type: {relationship}")
+                    self.logger.warning(f"Unknown relationship type: {relationship}")
             except Exception as e:
-                logger.error(f"Error exporting relationship {relationship}: {e}")
-
-    def run(self):
-        """
-        Executes the CSV preparation process.
-        """
-        self.prepare_nodes()
-        self.prepare_attributes()
-        self.prepare_relationships()
-        self.exporter.close()
-        logger.info("CSV preparation completed successfully.")
+                self.logger.error(f"Error exporting relationship {relationship}: {e}")
 
 
-def main():
-    logger.info("Starting CSV Preparation Process...")
-
-    # Define paths
-    structure_pickle_path = (
-        config.paths.condensed_output_dir / f"unwrapped_{config.files.structure_pickle}"
-    )
-    data_pickle_path = (
-        config.paths.condensed_output_dir / f"unwrapped_{config.files.data_pickle}"
-    )
-
-    # Load data
-    logger.info("Loading data from Pickle files...")
-    try:
-        structure = DataHandler.load_pickle(structure_pickle_path)
-        data = DataHandler.load_pickle(data_pickle_path)
-    except Exception as e:
-        logger.error(f"Failed to load pickles: {e}")
-        return
-
-    if not structure or not data:
-        logger.error("Loaded data is empty. Exiting CSV preparation.")
-        return
-
-    # Initialize CSV exporter
-    exporter = CSVExporter(config.paths.import_files_dir)
-
-    # Initialize CSV preparation
-    prep = CSVPrep(structure, data, exporter)
-    prep.run()
-
-    logger.info("CSV Preparation Process Completed.")
-
-
-def profile_main():
-    """
-    Profiles the main function and outputs the top 20 time-consuming functions.
-    """
-    pr = cProfile.Profile()
-    pr.enable()
-
-    main()
-
-    pr.disable()
-    s = io.StringIO()
-    sortby = pstats.SortKey.CUMULATIVE
-    ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-    ps.print_stats(20)  # Print top 20 time-consuming functions
-    print(s.getvalue())
+async def main():
+    prep = CSVPreparation()
+    await prep.run()
 
 
 if __name__ == "__main__":
-    profile_main()
+    asyncio.run(main())

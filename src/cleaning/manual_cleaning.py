@@ -120,7 +120,9 @@ async def clean_and_copy_files_async(
     modifications = []
     replacement_counts = defaultdict(int)
 
-    async for file_path in FileOperations.list_files(config.paths.input_folder):
+    # Await the result of the coroutine
+    files = await FileOperations.list_files(config.paths.input_folder)
+    for file_path in files:
         if file_path.is_file():
             destination_path = config.paths.manual_cleaned_html_data / file_path.name
             task = asyncio.create_task(

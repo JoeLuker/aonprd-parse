@@ -75,15 +75,9 @@ class FileOperations:
             raise
 
     @staticmethod
-    async def list_files(directory: Path, pattern: str = "*"):
-        """List files in a directory asynchronously."""
-        try:
-            async for file in asyncio.to_thread(directory.glob, pattern):
-                yield file
-            logger.debug(f"Listed files in {directory} matching pattern '{pattern}'")
-        except Exception as e:
-            logger.error(f"Failed to list files in {directory}: {e}", exc_info=True)
-            raise
+    async def list_files(directory: Path, pattern: str = "*") -> List[Path]:
+        """List files in a directory matching the given pattern."""
+        return await asyncio.to_thread(list, directory.glob(pattern))
 
     @staticmethod
     async def remove_file(file_path: Path):

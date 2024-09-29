@@ -26,7 +26,7 @@ files:
 
 database:
   consolidated_html_db: "data/consolidated/consolidated_html_data.db"
-  crawler_db: "data/consolidated/crawler_state.db"
+  crawler_db: "data/crawler_state.db"
 
 memgraph:
   host: "localhost"

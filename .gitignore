@@ -200,3 +200,5 @@ dummy.pickle
 results.txt
 
 .ruff_cache/
+
+data/

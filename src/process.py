@@ -13,7 +13,7 @@ from src.utils.logging import Logger
 from src.decomposing import decomposer, condense_decomposition
 from src.processing import unwrap
 from src.importing import csv_prep, memgraph
-from src.cleaning import manual_cleaning
+from src.cleaning import manual_cleaning, cleaner
 
 # Initialize Logger using the structured config
 logger = Logger.get_logger(
@@ -39,15 +39,14 @@ async def check_files_exist():
         raise FileNotFoundError("Required files or directories are missing.")
 
 
-async def run_script(script_coro, script_name: str):
-    """Run an asynchronous script coroutine."""
+async def run_script(script_func, script_name: str):
     try:
         logger.info(f"Starting {script_name}...")
-        await script_coro
+        await script_func()
         logger.info(f"Script {script_name} completed successfully.")
     except Exception as e:
         logger.error(f"Script {script_name} failed: {e}", exc_info=True)
-        raise  # Re-raise the exception to stop the pipeline
+        raise
 
 
 async def main():
@@ -55,30 +54,25 @@ async def main():
         await check_files_exist()
         logger.info("Starting all processing scripts...")
 
-        # Define script coroutines
         scripts = [
-            (manual_cleaning.main(), "Manual Cleaning"),
-            (decomposer.main(), "Decomposer"),
-            (condense_decomposition.main(), "Condense Decomposition"),
-            (unwrap.main(), "Unwrap"),
-            (csv_prep.main(), "CSV Preparation"),
-            (memgraph.main(), "Memgraph Importer"),
+            (cleaner.main, "Cleaning"),
+            (manual_cleaning.main, "Manual Cleaning"),
+            (decomposer.main, "Decomposer"),
+            (condense_decomposition.main, "Condense Decomposition"),
+            (unwrap.main, "Unwrap"),
+            (csv_prep.main, "CSV Preparation"),
+            (memgraph.main, "Memgraph Importer"),
         ]
 
-        # Run scripts sequentially
-        for script_coro, script_name in scripts:
-            await run_script(script_coro, script_name)
+        for script_func, script_name in scripts:
+            await run_script(script_func, script_name)
 
         logger.info("All processing scripts completed successfully.")
 
     except Exception as e:
         logger.error(f"Processing pipeline failed: {e}", exc_info=True)
-        raise  # Re-raise the exception to indicate failure to the caller
+        raise
 
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except Exception:
-        logger.exception("Processing pipeline failed with an unhandled exception.")
-        exit(1)  # Exit with a non-zero status code to indicate failure
+    asyncio.run(main())
