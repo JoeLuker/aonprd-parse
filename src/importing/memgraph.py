@@ -16,7 +16,7 @@ from src.utils.logging import Logger
 # Initialize Logger
 logger = Logger.get_logger(
     "MemgraphImporterLogger",
-    config.paths.log_dir / config.logging.memgraph_importer_log,
+    config.paths.log_dir / "memgraph_importer.log",
 )
 
 
@@ -208,6 +208,14 @@ class MemgraphImporter:
                 logger.warning(f"Relationship file {filename} not found. Skipping.")
 
         logger.info("Memgraph data import completed successfully.")
+
+    async def create_nodes(self, nodes: List[Dict[str, Any]]):
+        for node in nodes:
+            query = f"""
+            MERGE (n:{node['type']} {{id: $id}})
+            SET n += $properties
+            """
+            await self.execute_query(query, id=node['id'], properties=node['properties'])
 
 
 async def main():

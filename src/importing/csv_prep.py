@@ -4,7 +4,7 @@ import asyncio
 import csv
 import json
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from tqdm import tqdm
 
@@ -14,7 +14,7 @@ from src.utils.data_handling import DataHandler
 
 # Initialize Logger
 logger = Logger.get_logger(
-    "CSVPrepLogger", config.paths.log_dir / config.logging.csv_prep_log
+    "CSVPrepLogger", config.paths.log_dir / "csv_prep.log"
 )
 
 
@@ -302,6 +302,11 @@ class CSVPreparation:
                     self.logger.warning(f"Unknown relationship type: {relationship}")
             except Exception as e:
                 self.logger.error(f"Error exporting relationship {relationship}: {e}")
+
+    async def export_nodes(self, nodes: List[Dict[str, Any]]):
+        sorted_nodes = sorted(nodes, key=lambda x: x['id'])
+        for node in sorted_nodes:
+            await self.exporter.export_node(node['type'], node['id'], node)
 
 
 async def main():

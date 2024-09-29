@@ -15,7 +15,7 @@ from src.utils.file_operations import FileOperations
 
 # Initialize Logger
 logger = Logger.get_logger(
-    "ManualCleaningLogger", config.paths.log_dir / config.logging.processor_log
+    "ManualCleaningLogger", config.paths.log_dir / "manual_cleaning.log"
 )
 
 # Define replacements
@@ -80,11 +80,20 @@ async def process_file_async(
     """Asynchronously process a single file: apply replacements or copy as-is."""
     if source_path.name in skip_files:
         await copy_file_async(source_path, destination_path)
-        logger.info(f"Skipped and copied file: {source_path.name}")
+        logger.debug(f"Skipped and copied file: {source_path.name}")
         return False, set()
+
+    # Verify if destination already exists
+    if destination_path.exists():
+        # Optionally, compare hashes or content to decide whether to skip
+        source_hash = await FileOperations.get_file_hash(source_path)
+        dest_hash = await FileOperations.get_file_hash(destination_path)
+        if source_hash == dest_hash:
+            logger.debug(f"Destination file already exists and matches source: {source_path.name}")
+            return False, set()
+
     try:
         content = await FileOperations.read_file_async(source_path)
-        # Await the apply_replacements call
         modified_content, applied_replacements = await FileOperations.apply_replacements(
             content, REPLACEMENTS
         )
@@ -94,7 +103,7 @@ async def process_file_async(
             return True, applied_replacements
         else:
             await copy_file_async(source_path, destination_path)
-            logger.info(
+            logger.debug(
                 f"No replacements needed for file: {source_path.name}. Copied as-is."
             )
             return False, set()
@@ -121,7 +130,7 @@ async def clean_and_copy_files_async(
     replacement_counts = defaultdict(int)
 
     # Await the result of the coroutine
-    files = await FileOperations.list_files(config.paths.input_folder)
+    files = await FileOperations.list_files(config.paths.cleaned_html_data)
     for file_path in files:
         if file_path.is_file():
             destination_path = config.paths.manual_cleaned_html_data / file_path.name
@@ -254,10 +263,14 @@ async def process_database(conn: aiosqlite.Connection):
         logger.error(f"Error processing database mappings: {e}", exc_info=True)
         raise
 
-
 async def main():
     """Main asynchronous function to orchestrate the manual cleaning process."""
     logger.info("Starting Manual Cleaning Process...")
+
+    # Check if output folder exists and has files
+    if config.paths.manual_cleaned_html_data.exists() and any(config.paths.manual_cleaned_html_data.iterdir()):
+        logger.info("Output folder already exists and contains files. Skipping manual cleaning process.")
+        return
 
     # Ensure destination directory exists
     await FileOperations.ensure_directory(config.paths.manual_cleaned_html_data)

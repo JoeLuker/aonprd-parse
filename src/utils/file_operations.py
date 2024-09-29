@@ -3,13 +3,17 @@
 import aiofiles
 import asyncio
 import shutil
+import xxhash
 from pathlib import Path
 from typing import Tuple, Set, Dict, List
 
 from src.utils.logging import Logger
+from config.config import config
 
-logger = Logger.get_logger("FileOperationsLogger")
-
+# Initialize Logger
+logger = Logger.get_logger(
+    "FileOperationsLogger", config.paths.log_dir / "file_operations.log"
+)
 
 class FileOperations:
     @staticmethod
@@ -53,17 +57,14 @@ class FileOperations:
             raise
 
     @staticmethod
-    async def apply_replacements(
-        content: str, replacements: Dict[str, str]
-    ) -> Tuple[str, Set[str]]:
-        """Apply string replacements to content asynchronously."""
-        applied_replacements = set()
+    async def apply_replacements(content: str, replacements: Dict[str, str]) -> Tuple[str, Set[str]]:
+        applied = set()
         for old, new in replacements.items():
             if old in content:
                 content = content.replace(old, new)
-                applied_replacements.add(old)
-        return content, applied_replacements
-
+                applied.add(old)
+        return content, applied
+    
     @staticmethod
     async def ensure_directory(directory: Path):
         """Ensure that a directory exists asynchronously."""
@@ -100,4 +101,21 @@ class FileOperations:
                 f"Failed to move file from {source} to {destination}: {e}",
                 exc_info=True,
             )
+            raise
+
+    @staticmethod
+    async def get_file_hash(file_path: Path) -> str:
+        """Get the xxHash of a file asynchronously."""
+        try:
+            hasher = xxhash.xxh64()
+            async with aiofiles.open(file_path, "rb") as f:
+                chunk = await f.read(8192)
+                while chunk:
+                    hasher.update(chunk)
+                    chunk = await f.read(8192)
+            file_hash = hasher.hexdigest()
+            logger.debug(f"Calculated xxHash for file: {file_path}")
+            return file_hash
+        except Exception as e:
+            logger.error(f"Failed to calculate xxHash for file {file_path}: {e}", exc_info=True)
             raise

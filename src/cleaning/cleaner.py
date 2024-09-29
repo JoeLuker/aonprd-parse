@@ -19,16 +19,15 @@ from config.config import config
 from src.utils.logging import Logger
 from src.utils.file_operations import FileOperations
 
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO,  # Change to DEBUG for detailed logs during development
-    format='%(asctime)s - %(levelname)s - %(message)s'
+# Initialize Logger
+logger = Logger.get_logger(
+    "CleanerLogger", config.paths.log_dir / "cleaner.log"
 )
-logger = logging.getLogger(__name__)
+
 
 # Configuration
 INPUT_DIR = config.paths.input_folder
-OUTPUT_DIR = config.paths.manual_cleaned_html_data
+OUTPUT_DIR = config.paths.cleaned_html_data
 DB_NAME = config.database.consolidated_html_db
 CRAWLER_DB = config.database.crawler_db
 BATCH_SIZE = 100  # Adjust based on your system's capabilities
@@ -549,39 +548,45 @@ async def determine_unique_files(uf: UnionFind, file_hashes: Dict[str, Tuple[str
     except Exception as e:
         logger.error(f"Error determining unique files: {e}")
         raise
-
 async def main():
     """
     Main entry point of the script.
     """
     try:
-        # Install uvloop for better performance
+        # Set up performance enhancements
         uvloop.install()
-        # Initialize Union-Find structure
         uf = UnionFind()
-        # Ensure the output directory exists and manage the database connection
+
+        # Check if output directory exists and has files
+        if OUTPUT_DIR.exists() and any(OUTPUT_DIR.iterdir()):
+            logger.info("Output directory already exists and contains files. Skipping processing.")
+            return
+
+        # Manage output directory and database connection
         async with managed_directory(OUTPUT_DIR) as output_dir, managed_database(DB_NAME) as conn:
-            logger.info("Initializing database...")
+            # Initialize database and load URL mappings
             await init_database(conn)
-            logger.info("Loading URL mappings...")
             url_mapping = await load_url_mapping(CRAWLER_DB)
             logger.info(f"Loaded {len(url_mapping)} URL mappings")
-            logger.info("Finding duplicates and relative URL matches...")
+
+            # Perform deduplication
             file_hashes, relative_url_mapping = await find_duplicates(INPUT_DIR, url_mapping, uf)
-            logger.info(f"Found {len(file_hashes)} unique files based on hashes and relative URLs.")
-            logger.info("Performing second deduplication pass based on similarity...")
-            duplicate_pairs = await find_additional_duplicates(INPUT_DIR, relative_url_mapping, uf, file_hashes, url_mapping)
-            logger.info("Second deduplication pass completed.")
-            # Determine unique files
+            logger.info(f"Found {len(file_hashes)} unique files based on hashes and relative URLs")
+
+            await find_additional_duplicates(INPUT_DIR, relative_url_mapping, uf, file_hashes, url_mapping)
+            logger.info("Completed second deduplication pass based on similarity")
+
+            # Process unique files
             unique_files = await determine_unique_files(uf, file_hashes)
-            logger.info(f"Found {len(unique_files)} unique files after deduplication.")
-            logger.info("Processing files...")
+            logger.info(f"Found {len(unique_files)} unique files after deduplication")
+
             processed_files = await process_html_files(INPUT_DIR, url_mapping, unique_files)
             logger.info(f"Processed {len(processed_files)} files")
-            logger.info("Inserting data into database...")
+
+            # Save results
             await insert_data(conn, processed_files, uf, file_hashes, url_mapping)
-            logger.info("Saving deduplicated files...")
             await save_deduplicated_files(INPUT_DIR, output_dir, unique_files)
+
             logger.info("Processing completed successfully")
     except Exception as e:
         logger.error(f"An error occurred during processing: {e}")

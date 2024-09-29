@@ -15,7 +15,7 @@ from src.utils.file_operations import FileOperations
 
 # Initialize Logger
 logger = Logger.get_logger(
-    "UnwrapLogger", config.paths.log_dir / config.logging.unwrap_log
+    "UnwrapLogger", config.paths.log_dir / "unwrap.log"
 )
 
 

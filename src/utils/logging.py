@@ -34,7 +34,7 @@ class Logger:
 
             # Console Handler
             console_handler = logging.StreamHandler()
-            console_handler.setLevel(config.logging.console_level)
+            console_handler.setLevel(logging.INFO)
             console_handler.setFormatter(formatter)
             logger.addHandler(console_handler)
 
@@ -44,7 +44,7 @@ class Logger:
 
                 # File Handler
                 file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
-                file_handler.setLevel(config.logging.file_level)
+                file_handler.setLevel(logging.DEBUG)
                 file_handler.setFormatter(formatter)
                 logger.addHandler(file_handler)
 
@@ -64,4 +64,7 @@ class Logger:
         for logger in Logger._loggers.values():
             logger.setLevel(numeric_level)
             for handler in logger.handlers:
-                handler.setLevel(numeric_level)
+                if isinstance(handler, logging.StreamHandler):
+                    handler.setLevel(logging.INFO)
+                elif isinstance(handler, logging.FileHandler):
+                    handler.setLevel(logging.DEBUG)

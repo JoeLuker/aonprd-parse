@@ -14,10 +14,12 @@ from src.decomposing import decomposer, condense_decomposition
 from src.processing import unwrap
 from src.importing import csv_prep, memgraph
 from src.cleaning import manual_cleaning, cleaner
+from src.utils.file_operations import FileOperations
 
 # Initialize Logger using the structured config
 logger = Logger.get_logger(
-    "ProcessLogger", config.paths.log_dir / config.logging.processor_log
+    "ProcessLogger", 
+    config.paths.log_dir / "processor.log"
 )
 
 
@@ -45,7 +47,8 @@ async def run_script(script_func, script_name: str):
         await script_func()
         logger.info(f"Script {script_name} completed successfully.")
     except Exception as e:
-        logger.error(f"Script {script_name} failed: {e}", exc_info=True)
+        logger.error(f"Script {script_name} failed: {e}")
+        logger.debug(f"Detailed error for {script_name}:", exc_info=True)
         raise
 
 
@@ -54,6 +57,10 @@ async def main():
         await check_files_exist()
         logger.info("Starting all processing scripts...")
 
+        # Optionally, clean output directories
+        await FileOperations.ensure_directory(config.paths.processed_output_dir)
+        
+        # Run scripts
         scripts = [
             (cleaner.main, "Cleaning"),
             (manual_cleaning.main, "Manual Cleaning"),
@@ -70,7 +77,8 @@ async def main():
         logger.info("All processing scripts completed successfully.")
 
     except Exception as e:
-        logger.error(f"Processing pipeline failed: {e}", exc_info=True)
+        logger.error(f"Processing pipeline failed: {e}")
+        logger.debug("Detailed error for processing pipeline:", exc_info=True)
         raise
 
 

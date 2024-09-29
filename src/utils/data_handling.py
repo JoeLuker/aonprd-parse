@@ -7,9 +7,12 @@ from pathlib import Path
 from typing import Dict, Any
 
 from src.utils.logging import Logger
+from config.config import config
 
-logger = Logger.get_logger("DataHandlingLogger")
-
+# Initialize Logger
+logger = Logger.get_logger(
+    "DataHandlerLogger", config.paths.log_dir / "data_handling.log"
+)   
 
 class DataHandler:
     @staticmethod

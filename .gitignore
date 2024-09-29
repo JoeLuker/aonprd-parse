@@ -201,4 +201,5 @@ results.txt
 
 .ruff_cache/
 
-data/
+input_data/
+output_data/

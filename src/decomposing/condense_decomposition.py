@@ -13,7 +13,7 @@ from src.utils.file_operations import FileOperations
 
 # Initialize Logger
 logger = Logger.get_logger(
-    "CondenseDecompositionLogger", config.paths.log_dir / config.logging.processor_log
+    "CondenseDecompositionLogger", config.paths.log_dir / "condense_decomposition.log"
 )
 
 

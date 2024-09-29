@@ -4,14 +4,16 @@ from pydantic import Field, ConfigDict
 import yaml
 
 class PathsConfig(BaseSettings):
-    input_folder: Path = Field(default=Path("data/raw_html_data"))
-    manual_cleaned_html_data: Path = Field(default=Path("data/manual_cleaned_html_data"))
-    consolidated_dir: Path = Field(default=Path("data/consolidated"))
+    input_folder: Path = Field(default=Path("input_data/raw_html_data"))
+    cleaned_html_data: Path = Field(default=Path("output_data/consolidated/unique_raw_html_data"))
+    manual_cleaned_html_data: Path = Field(default=Path("output_data/manual_cleaned_html_data"))
+    consolidated_dir: Path = Field(default=Path("output_data/consolidated"))
     log_dir: Path = Field(default=Path("logs"))
-    decomposed_output_dir: Path = Field(default=Path("data/decomposed"))
-    condensed_output_dir: Path = Field(default=Path("data/condensed"))
-    processing_output_dir: Path = Field(default=Path("data/processed"))
-    import_files_dir: Path = Field(default=Path("data/import_files"))
+    decomposed_output_dir: Path = Field(default=Path("output_data/decomposed"))
+    condensed_output_dir: Path = Field(default=Path("output_data/condensed"))
+    processing_output_dir: Path = Field(default=Path("output_data/processed"))
+    processed_output_dir: Path = Field(default=Path("output_data/processed")) 
+    import_files_dir: Path = Field(default=Path("output_data/import_files"))
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -31,9 +33,8 @@ class FilesConfig(BaseSettings):
     filtered_structure_yaml: str = Field(default="filtered_structure.yaml")
 
 class DatabaseConfig(BaseSettings):
-    consolidated_html_db: Path = Field(default=Path("data/consolidated/consolidated_html_data.db"))
-    crawler_db: Path = Field(default=Path("data/consolidated/crawler_state.db"))
-
+    consolidated_html_db: Path = Field(default=Path("output_data/consolidated/consolidated_html_data.db"))
+    crawler_db: Path = Field(default=Path("input_data/crawler_state.db"))
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 class MemgraphConfig(BaseSettings):
@@ -41,21 +42,12 @@ class MemgraphConfig(BaseSettings):
     port: int = Field(default=7687)
     batch_size: int = Field(default=1000)
 
-class LoggingConfig(BaseSettings):
-    processor_log: str = Field(default="html_processor.log")
-    csv_prep_log: str = Field(default="yaml_csv_prep.log")
-    memgraph_importer_log: str = Field(default="memgraph_importer.log")
-    unwrap_log: str = Field(default="unwrap_matching_nodes.log")
-    console_level: str = Field(default="INFO")
-    file_level: str = Field(default="DEBUG")
-
 class Config(BaseSettings):
     paths: PathsConfig = Field(default_factory=PathsConfig)
     processing: ProcessingConfig = Field(default_factory=ProcessingConfig)
     files: FilesConfig = Field(default_factory=FilesConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     memgraph: MemgraphConfig = Field(default_factory=MemgraphConfig)
-    logging: LoggingConfig = Field(default_factory=LoggingConfig)
 
     model_config = ConfigDict(
         env_file=".env",
