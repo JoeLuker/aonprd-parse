@@ -4,8 +4,10 @@ import aiofiles
 import asyncio
 import shutil
 import xxhash
+import yaml
+import pickle
 from pathlib import Path
-from typing import Tuple, Set, Dict, List
+from typing import Tuple, Set, Dict, List, Any
 
 from src.utils.logging import Logger
 from config.config import config
@@ -118,4 +120,54 @@ class FileOperations:
             return file_hash
         except Exception as e:
             logger.error(f"Failed to calculate xxHash for file {file_path}: {e}", exc_info=True)
+            raise
+
+    @staticmethod
+    async def save_yaml(data: Dict[str, Any], filepath: Path):
+        """Save data to a YAML file asynchronously."""
+        try:
+            yaml_content = yaml.dump(data, default_flow_style=False, allow_unicode=True)
+            async with aiofiles.open(filepath, "w", encoding="utf-8") as f:
+                await f.write(yaml_content)
+            logger.debug(f"Saved YAML data to {filepath}")
+        except Exception as e:
+            logger.error(f"Failed to save YAML data to {filepath}: {e}", exc_info=True)
+            raise
+
+    @staticmethod
+    async def load_yaml(filepath: Path) -> Dict[str, Any]:
+        """Load data from a YAML file asynchronously."""
+        try:
+            async with aiofiles.open(filepath, "r", encoding="utf-8") as f:
+                content = await f.read()
+            data = yaml.safe_load(content)
+            logger.debug(f"Loaded YAML data from {filepath}")
+            return data
+        except Exception as e:
+            logger.error(f"Failed to load YAML data from {filepath}: {e}", exc_info=True)
+            raise
+
+    @staticmethod
+    async def save_pickle(data: Any, filepath: Path):
+        """Save data to a pickle file asynchronously."""
+        try:
+            pickle_data = pickle.dumps(data, protocol=pickle.HIGHEST_PROTOCOL)
+            async with aiofiles.open(filepath, "wb") as f:
+                await f.write(pickle_data)
+            logger.debug(f"Saved pickle data to {filepath}")
+        except Exception as e:
+            logger.error(f"Failed to save pickle data to {filepath}: {e}", exc_info=True)
+            raise
+
+    @staticmethod
+    async def load_pickle(filepath: Path) -> Any:
+        """Load data from a pickle file asynchronously."""
+        try:
+            async with aiofiles.open(filepath, "rb") as f:
+                pickle_data = await f.read()
+            data = pickle.loads(pickle_data)
+            logger.debug(f"Loaded pickle data from {filepath}")
+            return data
+        except Exception as e:
+            logger.error(f"Failed to load pickle data from {filepath}: {e}", exc_info=True)
             raise
