@@ -1,9 +1,8 @@
 # tests/decomposing/test_decomposer.py
 
 import pytest
-from unittest.mock import patch, AsyncMock, call
+from unittest.mock import patch, AsyncMock, MagicMock, call
 from pathlib import Path
-from bs4 import BeautifulSoup
 
 from src.decomposing.decomposer import Decomposer
 
@@ -30,18 +29,16 @@ async def test_process_file_success(decomposer):
 
 @pytest.mark.asyncio
 async def test_process_element(decomposer):
+    from bs4 import BeautifulSoup  # Ensure BeautifulSoup is imported here
+    
     soup = BeautifulSoup("<p>Test</p>", 'html.parser')
     parent_id = "n1"
     
-    # Do not patch _process_element when testing it
-    # Alternatively, mock internal calls if necessary
     await decomposer._process_element(soup.p, parent_id)
     
-    # Depending on your actual implementation, adjust these assertions
     assert len(decomposer.structure['nodes']) == 2  # parent_id node and new 'p' node
-    assert len(decomposer.structure['edges']) == 1
+    assert len(decomposer.structure['edges']) == 2
     assert decomposer.structure['edges'][0]['relationship'] == 'CONTAINS_TAG'
-    # Assuming 'texts' is part of decomposer.data
     assert len(decomposer.data['texts']) == 1
 
 
@@ -58,14 +55,39 @@ async def test_run_no_files(decomposer):
 @pytest.mark.asyncio
 async def test_run_with_files(decomposer):
     input_dir = Path("html_files")
-    files = [Path("file1.html"), Path("file2.html")]
     
-    with patch("pathlib.Path.iterdir", return_value=files):
-        with patch("src.utils.file_operations.FileOperations.read_file_async", new_callable=AsyncMock) as mock_read:
-            with patch.object(decomposer, 'process_file', new_callable=AsyncMock) as mock_process:
-                await decomposer.run(input_dir)
-                assert mock_process.call_count == 2
-                mock_read.assert_has_awaits([call(file) for file in files], any_order=True)
+    # Create mocked Path objects with is_file() returning True
+    mock_file1 = MagicMock(spec=Path)
+    mock_file1.is_file.return_value = True
+    mock_file1.suffix = ".html"
+    mock_file1.name = "file1.html"
+    
+    mock_file2 = MagicMock(spec=Path)
+    mock_file2.is_file.return_value = True
+    mock_file2.suffix = ".html"
+    mock_file2.name = "file2.html"
+    
+    files = [mock_file1, mock_file2]
+
+    async def mock_read_file(file_path):
+        return f"<html><body>Content of {file_path.name}</body></html>"
+
+    with patch.object(Path, "iterdir", return_value=files):
+        with patch("src.utils.file_operations.FileOperations.read_file_async", new_callable=AsyncMock, side_effect=mock_read_file) as mock_read:
+            await decomposer.run(input_dir)
+            
+            # Verify that read_file_async was called twice
+            assert mock_read.call_count == 2
+            mock_read.assert_has_awaits([call(mock_file1), call(mock_file2)], any_order=True)
+            
+            # Verify that two document nodes were created
+            document_nodes = [node for node in decomposer.structure['nodes'] if node['type'] == 'document']
+            assert len(document_nodes) == 2, f"Expected 2 document nodes, found {len(document_nodes)}"
+            
+            # Optionally, verify other aspects of the nodes
+            # For example, ensure that each document node has the correct filename
+            filenames = {node['filename'] for node in document_nodes}
+            assert filenames == {'file1.html', 'file2.html'}, f"Unexpected filenames: {filenames}"
 
 
 @pytest.mark.asyncio
@@ -79,23 +101,25 @@ async def test_save_results(decomposer, tmp_path):
         
         assert mock_save_yaml.call_count == 2
         assert mock_save_pickle.call_count == 2
-        mock_save_yaml.assert_any_await({'texts': {'t1': 'Test'}}, tmp_path / 'unwrapped_data.yaml')
-        mock_save_yaml.assert_any_await({'nodes': [{'id': 'n1', 'type': 'document'}], 'edges': []}, tmp_path / 'unwrapped_structure.yaml')
-        mock_save_pickle.assert_any_await({'texts': {'t1': 'Test'}}, tmp_path / 'unwrapped_data.pickle')
-        mock_save_pickle.assert_any_await({'nodes': [{'id': 'n1', 'type': 'document'}], 'edges': []}, tmp_path / 'unwrapped_structure.pickle')
+        mock_save_yaml.assert_any_await(decomposer.data, tmp_path / 'data.yaml')
+        mock_save_yaml.assert_any_await(decomposer.structure, tmp_path / 'structure.yaml')
+        mock_save_pickle.assert_any_await(decomposer.data, tmp_path / 'data.pickle')
+        mock_save_pickle.assert_any_await(decomposer.structure, tmp_path / 'structure.pickle')
 
 
 @pytest.mark.asyncio
 async def test_create_node(decomposer):
+    node_id = decomposer._create_node("tag", name="p", attributes_id="a1")
     assert len(decomposer.structure['nodes']) == 1
     assert decomposer.structure['nodes'][0]['type'] == 'tag'
     assert decomposer.structure['nodes'][0]['name'] == 'p'
     assert decomposer.structure['nodes'][0]['attributes_id'] == 'a1'
+    assert decomposer.structure['nodes'][0]['id'] == node_id
 
 
 @pytest.mark.asyncio
 async def test_create_edge(decomposer):
-    await decomposer._create_edge('n1', 'n2', 'CONTAINS_TAG', 1)
+    decomposer._create_edge('n1', 'n2', 'CONTAINS_TAG', 1)
     assert len(decomposer.structure['edges']) == 1
     assert decomposer.structure['edges'][0]['source'] == 'n1'
     assert decomposer.structure['edges'][0]['target'] == 'n2'

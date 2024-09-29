@@ -144,48 +144,41 @@ class Unwrapper:
         }
 
         logger.info("Unwrapping process completed.")
+        self.validate_graph()  # Add this line
 
     def validate_graph(self):
-        """Validate the integrity of the unwrapped graph."""
+        """Validate the integrity of the graph."""
         try:
-            if nx.is_directed_acyclic_graph(self.unwrapped_graph):
-                logger.info("Unwrapped graph is a Directed Acyclic Graph (DAG).")
+            if nx.is_directed_acyclic_graph(self.graph):
+                logger.info("Graph is a Directed Acyclic Graph (DAG).")
             else:
-                logger.warning("Unwrapped graph contains cycles.")
+                logger.warning("Graph contains cycles.")
 
-            if not nx.is_weakly_connected(self.unwrapped_graph):
-                num_components = nx.number_weakly_connected_components(
-                    self.unwrapped_graph
-                )
-                logger.warning(
-                    f"Unwrapped graph has {num_components} weakly connected components."
-                )
+            if not nx.is_weakly_connected(self.graph):
+                num_components = nx.number_weakly_connected_components(self.graph)
+                logger.warning(f"Graph has {num_components} weakly connected components.")
 
             orphaned_nodes = [
-                node
-                for node in self.unwrapped_graph.nodes()
-                if self.unwrapped_graph.degree(node) == 0
+                node for node in self.graph.nodes() if self.graph.degree(node) == 0
             ]
             if orphaned_nodes:
-                logger.warning(
-                    f"Found {len(orphaned_nodes)} orphaned nodes in the unwrapped graph."
-                )
+                logger.warning(f"Found {len(orphaned_nodes)} orphaned nodes in the graph.")
 
         except Exception as e:
             logger.error(f"Error validating graph: {e}", exc_info=True)
 
-    def save_results(self, output_dir: Path):
+    async def save_results(self, output_dir: Path):
         """Save the unwrapped data and structure."""
-        DataHandler.save_yaml(
+        await DataHandler.save_yaml(
             self.unwrapped_data, output_dir / config.files.filtered_data_yaml
         )
-        DataHandler.save_yaml(
+        await DataHandler.save_yaml(
             self.unwrapped_structure, output_dir / config.files.filtered_structure_yaml
         )
-        DataHandler.save_pickle(
+        await DataHandler.save_pickle(
             self.unwrapped_data, output_dir / config.files.filtered_data_pickle
         )
-        DataHandler.save_pickle(
+        await DataHandler.save_pickle(
             self.unwrapped_structure,
             output_dir / config.files.filtered_structure_pickle,
         )
@@ -239,7 +232,7 @@ async def main():
     unwrapper.validate_graph()
 
     # Save results
-    unwrapper.save_results(output_dir)
+    await unwrapper.save_results(output_dir)
 
     logger.info("Unwrap Process Completed Successfully.")
 

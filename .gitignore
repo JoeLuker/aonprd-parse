@@ -196,3 +196,7 @@ data/consolidated/crawler_state.db
 dummy_dir/
 dummy.yaml
 dummy.pickle
+
+results.txt
+
+.ruff_cache/

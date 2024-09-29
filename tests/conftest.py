@@ -3,6 +3,7 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from pathlib import Path
+import sqlite3
 
 
 @pytest.fixture
@@ -50,8 +51,7 @@ def mock_logger():
 
 @pytest.fixture
 def mock_config():
-    # Adjust the patch target based on how 'config' is imported in the code under test
-    with patch("src.cleaning.manual_cleaning.config.config") as mock_conf:
+    with patch("src.cleaning.manual_cleaning.config") as mock_conf:
         mock_conf.paths = MagicMock()
         mock_conf.paths.input_folder = Path("/mock/input")
         mock_conf.paths.manual_cleaned_html_data = Path("/mock/manual_cleaned_html")
@@ -93,6 +93,15 @@ def mock_config():
         mock_conf.logging.unwrap_log = "unwrap_matching_nodes.log"
         mock_conf.logging.console_level = "INFO"
         mock_conf.logging.file_level = "DEBUG"
+
+        mock_conf.cleaning = MagicMock()
+        mock_conf.cleaning.replacements = {
+            "<<": "<",
+            ">>": ">",
+            "<istirge": "<i>stirge",
+            "<blackmarrow": "<i>blackmarow",
+            # Add other replacements as needed
+        }
         
         yield mock_conf
 
@@ -103,8 +112,8 @@ def mock_file_operations():
         mock_fo.read_file_async = AsyncMock()
         mock_fo.write_file_async = AsyncMock()
         mock_fo.copy_async = AsyncMock()
-        # 'apply_replacements' and 'ensure_directory' are synchronous methods
-        # No need to mock them here; they can be mocked individually in tests if needed
+        mock_fo.apply_replacements = MagicMock()
+        mock_fo.ensure_directory = MagicMock()
         yield mock_fo
 
 
@@ -119,8 +128,42 @@ def mock_data_handler():
 
 
 @pytest.fixture
-def mock_database_connection():
-    mock_conn = MagicMock()
-    mock_cursor = MagicMock()
-    mock_conn.cursor.return_value = mock_cursor
-    return mock_conn
+async def mock_conn():
+    conn = AsyncMock(spec=sqlite3.Connection)
+    cursor = AsyncMock(spec=sqlite3.Cursor)
+    conn.cursor.return_value = cursor
+    return conn
+
+
+@pytest.fixture
+def mock_cursor():
+    cursor = MagicMock(spec=sqlite3.Cursor)
+    return cursor
+
+
+@pytest.fixture
+def mock_decomposer():
+    with patch("src.decomposing.decomposer.Decomposer") as mock_dec:
+        instance = mock_dec.return_value
+        instance.data = {"texts": {}, "doctypes": {}, "comments": {}, "attributes": {}}
+        instance.structure = {"nodes": [], "edges": []}
+        instance.node_id_counter = 1
+        instance.attribute_id_counter = 1
+        yield instance
+
+
+@pytest.fixture
+def mock_csv_exporter():
+    with patch("src.importing.csv_prep.CSVExporter") as mock_exporter:
+        instance = mock_exporter.return_value
+        instance.files = {
+            'Document': {'writer': MagicMock()},
+            'Attribute': {'writer': MagicMock()},
+            'HAS_DOCTYPE': {'writer': MagicMock()},
+            'HAS_COMMENT': {'writer': MagicMock()},
+            'CONTAINS_TEXT': {'writer': MagicMock()},
+            'CONTAINS_TAG': {'writer': MagicMock()},
+            'HAS_ROOT': {'writer': MagicMock()},
+            'HAS_ATTRIBUTE': {'writer': MagicMock()}
+        }
+        yield instance

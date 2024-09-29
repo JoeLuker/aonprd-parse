@@ -1,6 +1,13 @@
 # src/process.py
 
 import asyncio
+import sys
+from pathlib import Path
+
+# Add the project root directory to the Python path
+project_root = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(project_root))
+
 from config.config import config
 from src.utils.logging import Logger
 from src.decomposing import decomposer, condense_decomposition

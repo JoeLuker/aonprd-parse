@@ -21,8 +21,9 @@ class DataHandler:
             logger.debug(f"Loaded YAML data from {filepath}")
             return data
         except Exception as e:
-            logger.error(f"Failed to load YAML from {filepath}: {e}")
-            raise
+            error_msg = f"Failed to load YAML from {filepath}: {str(e)}"
+            logger.error(error_msg)
+            raise Exception(error_msg) from e
 
     @staticmethod
     async def save_yaml(data: Dict[str, Any], filepath: Path):
@@ -34,8 +35,9 @@ class DataHandler:
                 await file.write(yaml_content)
             logger.debug(f"Saved YAML data to {filepath}")
         except Exception as e:
-            logger.error(f"Failed to save YAML to {filepath}: {e}")
-            raise
+            error_msg = f"Failed to save YAML to {filepath}: {str(e)}"
+            logger.error(error_msg)
+            raise Exception(error_msg) from e
 
     @staticmethod
     async def load_pickle(filepath: Path) -> Any:
@@ -46,8 +48,9 @@ class DataHandler:
             logger.debug(f"Loaded pickle data from {filepath}")
             return data
         except Exception as e:
-            logger.error(f"Failed to load pickle from {filepath}: {e}")
-            raise
+            error_msg = f"Failed to load pickle from {filepath}: {str(e)}"
+            logger.error(error_msg)
+            raise Exception(error_msg) from e
 
     @staticmethod
     async def save_pickle(data: Any, filepath: Path):
@@ -59,5 +62,6 @@ class DataHandler:
                 await file.write(pickled_data)
             logger.debug(f"Saved pickle data to {filepath}")
         except Exception as e:
-            logger.error(f"Failed to save pickle to {filepath}: {e}")
-            raise
+            error_msg = f"Failed to save pickle to {filepath}: {str(e)}"
+            logger.error(error_msg)
+            raise Exception(error_msg) from e

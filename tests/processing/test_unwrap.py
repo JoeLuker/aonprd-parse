@@ -6,6 +6,7 @@ from pathlib import Path
 import networkx as nx
 
 from src.processing.unwrap import Unwrapper
+from config.config import config
 
 
 @pytest.fixture
@@ -64,23 +65,34 @@ def test_validate_graph_with_cycles(unwrapper):
 
 @pytest.mark.asyncio
 async def test_unwrap_matching_nodes(unwrapper):
-    criteria = {'type': 'tag', 'name': 'p'}
-    with patch.object(unwrapper, 'unwrap_matching_nodes_logic', new_callable=AsyncMock) as mock_logic:
-        await unwrapper.unwrap_matching_nodes(criteria)
-        mock_logic.assert_awaited_once_with(criteria)
+    target_attributes = [{'type': 'tag', 'name': 'p'}]
+    with patch.object(unwrapper, 'find_nodes_with_attributes', return_value={'key': ['n2']}), \
+         patch.object(unwrapper, 'rewire_graph'), \
+         patch.object(unwrapper, 'validate_graph'):
+        await unwrapper.unwrap_matching_nodes(target_attributes)
+        unwrapper.find_nodes_with_attributes.assert_called_once_with(target_attributes)
+        unwrapper.rewire_graph.assert_called_once()
+        unwrapper.validate_graph.assert_called_once()
 
 
 @pytest.mark.asyncio
 async def test_save_results(unwrapper, tmp_path):
     with patch("src.utils.data_handling.DataHandler.save_yaml", new_callable=AsyncMock) as mock_save_yaml, \
-         patch("src.utils.data_handling.DataHandler.save_pickle", new_callable=AsyncMock) as mock_save_pickle:
+         patch("src.utils.data_handling.DataHandler.save_pickle", new_callable=AsyncMock) as mock_save_pickle, \
+         patch("src.processing.unwrap.logger.info") as mock_logger_info:
+
         output_dir = Path("output_dir")
         unwrapper.unwrapped_data = {'key': 'value'}
         unwrapper.unwrapped_structure = {'nodes': [], 'edges': []}
-        
+
         await unwrapper.save_results(output_dir)
+
+        assert mock_save_yaml.await_count == 2
+        assert mock_save_pickle.await_count == 2
         
-        mock_save_yaml.assert_any_await({'key': 'value'}, output_dir / 'unwrapped_data.yaml')
-        mock_save_yaml.assert_any_await({'nodes': [], 'edges': []}, output_dir / 'unwrapped_structure.yaml')
-        mock_save_pickle.assert_any_await({'key': 'value'}, output_dir / 'unwrapped_data.pickle')
-        mock_save_pickle.assert_any_await({'nodes': [], 'edges': []}, output_dir / 'unwrapped_structure.pickle')
+        mock_save_yaml.assert_any_await(unwrapper.unwrapped_data, output_dir / config.files.filtered_data_yaml)
+        mock_save_yaml.assert_any_await(unwrapper.unwrapped_structure, output_dir / config.files.filtered_structure_yaml)
+        mock_save_pickle.assert_any_await(unwrapper.unwrapped_data, output_dir / config.files.filtered_data_pickle)
+        mock_save_pickle.assert_any_await(unwrapper.unwrapped_structure, output_dir / config.files.filtered_structure_pickle)
+
+        mock_logger_info.assert_called_once_with("Unwrapped data and structure saved successfully.")

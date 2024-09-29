@@ -112,26 +112,26 @@ class Decomposer:
         ]
         logger.info(f"Found {len(html_files)} HTML files to process.")
 
-        tasks = [
-            self.process_file(file)
-            for file in html_files[: config.processing.max_files]
-        ]
-        for f in tqdm(
-            asyncio.as_completed(tasks), total=len(tasks), desc="Decomposing HTML files"
-        ):
-            await f
+        max_files = getattr(config.processing, 'max_files', float('inf'))
+        files_to_process = html_files[:max_files]
+        
+        if files_to_process:
+            tasks = [self.process_file(file) for file in files_to_process]
+            await asyncio.gather(*tasks)
+        else:
+            logger.warning("No HTML files found to process.")
 
-    def save_results(self, output_dir: Path):
+    async def save_results(self, output_dir: Path):
         """Save the decomposed data and structure to YAML and Pickle files."""
         data_yaml_path = output_dir / config.files.data_yaml
         structure_yaml_path = output_dir / config.files.structure_yaml
         data_pickle_path = output_dir / config.files.data_pickle
         structure_pickle_path = output_dir / config.files.structure_pickle
 
-        DataHandler.save_yaml(self.data, data_yaml_path)
-        DataHandler.save_yaml(self.structure, structure_yaml_path)
-        DataHandler.save_pickle(self.data, data_pickle_path)
-        DataHandler.save_pickle(self.structure, structure_pickle_path)
+        await DataHandler.save_yaml(self.data, data_yaml_path)
+        await DataHandler.save_yaml(self.structure, structure_yaml_path)
+        await DataHandler.save_pickle(self.data, data_pickle_path)
+        await DataHandler.save_pickle(self.structure, structure_pickle_path)
 
         logger.info("Decomposed data and structure saved successfully.")
 
@@ -146,7 +146,7 @@ async def main():
 
     decomposer = Decomposer()
     await decomposer.run(input_dir)
-    decomposer.save_results(output_dir)
+    await decomposer.save_results(output_dir)
 
     logger.info("Decomposition process completed successfully.")
 

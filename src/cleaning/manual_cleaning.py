@@ -1,11 +1,11 @@
 # src/cleaning/manual_cleaning.py
 
 import asyncio
-import shutil
-import sqlite3
+import aiosqlite
 from pathlib import Path
 from typing import List, Set, Tuple, Dict, Any
 from collections import defaultdict
+import textwrap  # Import textwrap to normalize query strings
 
 from tqdm.asyncio import tqdm
 
@@ -40,7 +40,7 @@ REPLACEMENTS = {
     '<td colspan="2"</td>': '<td colspan="2"></td>',
     '<CAV.ORDERS%Order of the Lion">': '<a style="text-decoration:underline" href="CavalierOrders.aspx?ItemName=Order of the Lion">',
     '<CAV.ORDERS%Order of the Dragon">': '<a style="text-decoration:underline" href="CavalierOrders.aspx?ItemName=Order of the Dragon">',
-    "<br /’>": "<br />",
+    "<br /'>": "<br />",
     '<MONSTERS%Worg%">worg<%END>': '<a style="text-decoration:underline" href="MonsterDisplay.aspx?ItemName=Worg">worg</a>',
     "<hypnotism</i>": "<i>hypnotism</i>",
     "<b...": "",
@@ -65,7 +65,7 @@ REPLACEMENTS = {
 async def copy_file_async(source: Path, destination: Path):
     """Asynchronously copy a file from source to destination."""
     try:
-        await asyncio.to_thread(shutil.copy2, source, destination)
+        await FileOperations.copy_async(source, destination)
         logger.debug(f"Copied file from {source} to {destination}")
     except Exception as e:
         logger.error(
@@ -84,7 +84,8 @@ async def process_file_async(
         return False, set()
     try:
         content = await FileOperations.read_file_async(source_path)
-        modified_content, applied_replacements = FileOperations.apply_replacements(
+        # Await the apply_replacements call
+        modified_content, applied_replacements = await FileOperations.apply_replacements(
             content, REPLACEMENTS
         )
         if applied_replacements:
@@ -102,6 +103,15 @@ async def process_file_async(
         return False, set()
 
 
+async def process_file_with_name(
+    file_path: Path, destination_path: Path, skip_files: Set[str]
+) -> Tuple[str, bool, Set[str]]:
+    """Wrapper to include file name in the result."""
+    modified, applied_replacements = await process_file_async(
+        file_path, destination_path, skip_files
+    )
+    return file_path.name, modified, applied_replacements
+
 async def clean_and_copy_files_async(
     skip_files: Set[str],
 ) -> Tuple[List[str], Dict[str, int]]:
@@ -110,35 +120,38 @@ async def clean_and_copy_files_async(
     modifications = []
     replacement_counts = defaultdict(int)
 
-    for file_path in config.paths.input_folder.iterdir():
+    async for file_path in FileOperations.list_files(config.paths.input_folder):
         if file_path.is_file():
             destination_path = config.paths.manual_cleaned_html_data / file_path.name
-            tasks.append(process_file_async(file_path, destination_path, skip_files))
+            task = asyncio.create_task(
+                process_file_with_name(file_path, destination_path, skip_files)
+            )
+            tasks.append(task)
 
-    for result in tqdm(
+    for task in tqdm(
         asyncio.as_completed(tasks), total=len(tasks), desc="Processing files"
     ):
-        modified, applied_replacements = await result
+        file_name, modified, applied_replacements = await task
         if modified:
-            modifications.append(file_path.name)
+            modifications.append(file_name)
             for replacement in applied_replacements:
                 replacement_counts[replacement] += 1
 
     return modifications, replacement_counts
 
 
-async def connect_to_db(db_path: Path) -> sqlite3.Connection:
-    """Connect to the SQLite database."""
+async def connect_to_db(db_path: Path) -> aiosqlite.Connection:
+    """Connect to the SQLite database asynchronously."""
     try:
-        conn = await asyncio.to_thread(sqlite3.connect, str(db_path))
+        conn = await aiosqlite.connect(str(db_path))
         logger.debug(f"Connected to database at {db_path}")
         return conn
-    except sqlite3.Error as e:
+    except aiosqlite.Error as e:
         logger.error(f"Failed to connect to database at {db_path}: {e}", exc_info=True)
         raise
 
 
-async def get_html_file_mapping(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
+async def get_html_file_mapping(conn: aiosqlite.Connection) -> List[Dict[str, Any]]:
     """Retrieve HTML file mappings from the database."""
     query = """
     SELECT 
@@ -151,13 +164,15 @@ async def get_html_file_mapping(conn: sqlite3.Connection) -> List[Dict[str, Any]
     WHERE f1.relative_url LIKE 'Spells.aspx?Class=%&SchoolSort=true'
     """
     try:
-        cursor = await conn.execute(query)
-        rows = await cursor.fetchall()
-        columns = [description[0] for description in cursor.description]
-        mapping = [dict(zip(columns, row)) for row in rows]
-        logger.debug(f"Retrieved {len(mapping)} HTML file mappings from the database")
-        return mapping
-    except sqlite3.Error as e:
+        async with conn.execute(query) as cursor:
+            rows = await cursor.fetchall()
+            columns = [description[0] for description in cursor.description]
+            mapping = [dict(zip(columns, row)) for row in rows]
+            logger.debug(
+                f"Retrieved {len(mapping)} HTML file mappings from the database"
+            )
+            return mapping
+    except aiosqlite.Error as e:
         logger.error(f"Failed to retrieve HTML file mappings: {e}", exc_info=True)
         raise
 
@@ -180,28 +195,31 @@ async def prepare_canonical_mapping(
 
 
 async def insert_canonical_mapping(
-    conn: sqlite3.Connection, data_to_insert: List[Tuple[str, str, str, str]]
+    conn: aiosqlite.Connection, data_to_insert: List[Tuple[str, str, str, str]]
 ):
     """Insert canonical mappings into the database."""
     try:
-        await conn.executemany(
+        query = textwrap.dedent(
             """
-        INSERT OR REPLACE INTO canonical_mapping 
-        (canonical_file, duplicate_file, canonical_url, duplicate_url) 
-        VALUES (?, ?, ?, ?)
-        """,
+            INSERT OR REPLACE INTO canonical_mapping
+            (canonical_file, duplicate_file, canonical_url, duplicate_url)
+            VALUES (?, ?, ?, ?)
+            """
+        )
+        await conn.executemany(
+            query,
             data_to_insert,
         )
         await conn.commit()
         logger.info(
             f"Inserted {len(data_to_insert)} entries into canonical_mapping table"
         )
-    except sqlite3.Error as e:
+    except aiosqlite.Error as e:
         logger.error(f"Failed to insert canonical mappings: {e}", exc_info=True)
         raise
 
 
-async def get_skip_files(conn: sqlite3.Connection) -> Set[str]:
+async def get_skip_files(conn: aiosqlite.Connection) -> Set[str]:
     """Retrieve a set of files to skip during processing."""
     search_files = {
         "63634bccb56c98559dab055327186a07.html",
@@ -218,7 +236,7 @@ async def get_skip_files(conn: sqlite3.Connection) -> Set[str]:
     return skip_files
 
 
-async def process_database(conn: sqlite3.Connection):
+async def process_database(conn: aiosqlite.Connection):
     """Process database mappings and insert canonical mappings."""
     try:
         mapping_data = await get_html_file_mapping(conn)
@@ -240,7 +258,7 @@ async def main():
     logger.info("Starting Manual Cleaning Process...")
 
     # Ensure destination directory exists
-    FileOperations.ensure_directory(config.paths.manual_cleaned_html_data)
+    await FileOperations.ensure_directory(config.paths.manual_cleaned_html_data)
 
     # Connect to the database
     conn = await connect_to_db(config.database.consolidated_html_db)
