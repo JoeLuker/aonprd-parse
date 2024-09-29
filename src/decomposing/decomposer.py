@@ -1,219 +1,297 @@
-# src/decomposing/decomposer.py
-
 import asyncio
-import xxhash
-from pathlib import Path
-from typing import Dict, Any
 from bs4 import BeautifulSoup, Tag, NavigableString, Comment, Doctype
 from tqdm.asyncio import tqdm
-
-# Import shared modules
+from pathlib import Path
+import xxhash
+from threading import RLock
+from typing import List, Tuple, Dict, Any
+import multiprocessing
 from config.config import config
 from src.utils.logging import Logger
 from src.utils.file_operations import FileOperations
-from src.utils.data_handling import DataHandler
 
-# Initialize Logger
-logger = Logger.get_logger(
-    "DecomposerLogger", config.paths.log_dir / "decomposer.log"
-)
 
+logger = Logger.get_logger("DecomposerLogger", config.paths.log_dir / "decomposer.log")
+
+def make_hashable(obj):
+    if isinstance(obj, list):
+        return tuple(make_hashable(e) for e in obj)
+    elif isinstance(obj, dict):
+        return frozenset((k, make_hashable(v)) for k, v in obj.items())
+    else:
+        return obj
 
 class Decomposer:
-    """
-    Handles the decomposition of HTML files into graph structures.
-    """
-
     def __init__(self):
-        self.node_id_counter = 1
-        self.attribute_id_counter = 1
-        self.processed_files = set()
-
-    async def process(self):
         self.data = {
             'texts': {},
             'doctypes': {},
             'comments': {},
-            'attributes': {}  # Initialize attributes
+            'attributes': {}
         }
-        self.structure = {'nodes': [], 'edges': []}
-        # Continue with decomposition
-        input_dir = config.paths.manual_cleaned_html_data
-        html_files = [
-            f for f in input_dir.iterdir() if f.is_file() and f.suffix == ".html"
-        ]
-        logger.info(f"Found {len(html_files)} HTML files to process.")
+        self.structure = {
+            'nodes': [],
+            'edges': []
+        }
+        self.text_lookup = {}
+        self.doctype_lookup = {}
+        self.comment_lookup = {}
+        self.attribute_lookup = {}
+        self.node_id_counter = 1
+        self.attribute_id_counter = 1
+        self.subtree_hash_cache = {}
+        self.subtree_node_cache = {}
+        self.edge_set = set()
+        self.cache_lock = RLock()
+        self.input_directory = config.paths.manual_cleaned_html_data
+        self.max_cores = min(20, multiprocessing.cpu_count())
 
-        max_files = getattr(config.processing, 'max_files', float('inf'))
-        files_to_process = html_files[:max_files]
-        
-        if files_to_process:
-            tasks = [self.process_file(file) for file in files_to_process]
-            await tqdm.gather(*tasks, desc="Processing HTML files", unit="file")
-        else:
+    async def process(self):
+        await FileOperations.ensure_directory(config.paths.decomposed_output_dir)
+
+        files_to_process = self.get_files_to_process()
+        if not files_to_process:
             logger.warning("No HTML files found to process.")
-
-    async def process_file(self, file_path: Path):
-        """Asynchronously process a single HTML file."""
-        file_hash = self._hash_file(file_path)
-        if file_hash in self.processed_files:
-            logger.info(f"File {file_path.name} already processed. Skipping.")
             return
 
+        semaphore = asyncio.Semaphore(self.max_cores * 10)
+
+        async def sem_task(file):
+            async with semaphore:
+                await self.process_file(file)
+
+        tasks = [sem_task(file) for file in files_to_process]
+
+        for task in tqdm.as_completed(tasks, total=len(tasks), desc="Processing HTML files", unit="file"):
+            await task
+
+        logger.info("Finished processing all HTML files.")
+
+    def get_files_to_process(self) -> List[Path]:
+        files = list(self.input_directory.glob('*.html'))
+        logger.info(f"Found {len(files)} HTML files to process.")
+        return files
+
+    async def process_file(self, file_path: Path):
+        logger.debug(f"Processing file: {file_path}")
         try:
             content = await FileOperations.read_file_async(file_path)
-            soup = BeautifulSoup(content, "html.parser")
-            document_node_id = self._create_node("document", filename=file_path.name)
-            await self._process_element(soup, document_node_id)
-            self.processed_files.add(file_hash)
-            logger.verbose(f"Processed file: {file_path.name}")
+            soup = BeautifulSoup(content, 'html.parser')
+            self._process_document(soup, file_path.name)
         except Exception as e:
             logger.error(f"Error processing file {file_path.name}: {e}", exc_info=True)
 
-    async def _process_element(self, element: Any, parent_id: str, order: int = 0):
+    def _process_document(self, soup: BeautifulSoup, filename: str):
+        root_node_id, _ = self._create_node('document', filename=filename)
+        for order, element in enumerate(soup.contents, start=1):
+            child_node_id, _ = self._process_node(element, parent_id=root_node_id, order=order)
+            if isinstance(element, Tag) and child_node_id:
+                self._create_edge(source_id=root_node_id, target_id=child_node_id, relationship='HAS_ROOT', order=order)
+
+    def _process_node(self, element: Any, parent_id: str, order: int) -> Tuple[str, str]:
         if isinstance(element, Doctype):
-            doctype_id = self._create_doctype(str(element))
-            node_id = self._create_node("doctype", data_id=doctype_id)
-            self._create_edge(parent_id, node_id, "HAS_DOCTYPE", order)
+            node_id, _ = self._create_node('doctype', content=str(element))
+            self._create_edge(source_id=parent_id, target_id=node_id, relationship='HAS_DOCTYPE', order=order)
         elif isinstance(element, Comment):
-            comment_id = self._create_comment(str(element))
-            node_id = self._create_node("comment", data_id=comment_id)
-            self._create_edge(parent_id, node_id, "HAS_COMMENT", order)
+            node_id, _ = self._create_node('comment', content=str(element))
+            self._create_edge(source_id=parent_id, target_id=node_id, relationship='HAS_COMMENT', order=order)
         elif isinstance(element, NavigableString):
             if element.strip():
-                text_id = self._create_text(str(element))
-                node_id = self._create_node("textnode", data_id=text_id)
-                self._create_edge(parent_id, node_id, "CONTAINS_TEXT", order)
+                node_id, _ = self._create_node('textnode', content=element.strip())
+                self._create_edge(source_id=parent_id, target_id=node_id, relationship='CONTAINS_TEXT', order=order)
+            else:
+                return '', ''
         elif isinstance(element, Tag):
-            attributes_id = (
-                self._create_attribute(element.attrs) if element.attrs else None
-            )
-            node_id = self._create_node(
-                "tag", name=element.name, attributes_id=attributes_id
-            )
-            self._create_edge(parent_id, node_id, "CONTAINS_TAG", order)
+            children_hashes = []
+            for child in element.children:
+                _, child_hash = self._compute_subtree_hash(child)
+                if child_hash:
+                    children_hashes.append(child_hash)
+
+            node_id, _ = self._create_node('tag', name=element.name, attributes=element.attrs, children_hashes=tuple(children_hashes))
+            self._create_edge(source_id=parent_id, target_id=node_id, relationship='CONTAINS_TAG', order=order)
 
             for child_order, child in enumerate(element.children, start=1):
-                await self._process_element(child, node_id, child_order)
+                self._process_node(child, parent_id=node_id, order=child_order)
+        else:
+            logger.warning(f"Unknown element type: {type(element)}")
+            return '', ''
 
-    def _create_node(self, node_type: str, **kwargs) -> str:
-        # Check if node already exists
-        for node in self.structure["nodes"]:
-            if node["type"] == node_type and all(node.get(k) == v for k, v in kwargs.items()):
-                return node["id"]
+        return node_id, _
+
+    def _create_node(self, node_type: str, **kwargs) -> Tuple[str, str]:
+        identifier = (node_type, kwargs.get('name', ''), make_hashable(kwargs.get('attributes')), kwargs.get('children_hashes', ()), kwargs.get('content', ''))
+        
+        with self.cache_lock:
+            existing_node_id = self.subtree_node_cache.get(identifier)
+            if existing_node_id:
+                subtree_hash = self.subtree_hash_cache.get(identifier)
+                return existing_node_id, subtree_hash
+
+        subtree_hash = self._hash_subtree(**kwargs, node_type=node_type)
 
         node_id = f"n{self.node_id_counter}"
         self.node_id_counter += 1
-        node = {"id": node_id, "type": node_type, **kwargs}
-        self.structure["nodes"].append(node)
-        return node_id
 
-    def _create_edge(
-        self, source_id: str, target_id: str, relationship: str, order: int
-    ):
-        # Check if edge already exists
-        for edge in self.structure["edges"]:
-            if (
-                edge["source"] == source_id
-                and edge["target"] == target_id
-                and edge["relationship"] == relationship
-                and edge["order"] == order
-            ):
-                return
+        node = {'id': node_id, 'type': node_type}
+
+        if node_type == 'textnode':
+            node['data_id'] = self._create_text(kwargs['content'])
+        elif node_type == 'doctype':
+            node['data_id'] = self._create_doctype(kwargs['content'])
+        elif node_type == 'comment':
+            node['data_id'] = self._create_comment(kwargs['content'])
+        elif node_type == 'tag':
+            node['name'] = kwargs['name']
+            if kwargs.get('attributes'):
+                attribute_id = self._create_attribute(kwargs['attributes'])
+                node['attributes_id'] = attribute_id
+        elif node_type == 'document':
+            node['filename'] = kwargs['filename']
+
+        self.structure['nodes'].append(node)
+        self.subtree_node_cache[identifier] = node_id
+
+        return node_id, subtree_hash
+
+    def _create_edge(self, source_id: str, target_id: str, relationship: str, order: int = None):
+        edge_key = (source_id, target_id, relationship, order)
+        if edge_key in self.edge_set:
+            return
+        self.edge_set.add(edge_key)
 
         edge = {
-            "source": source_id,
-            "target": target_id,
-            "relationship": relationship,
-            "order": order,
+            'source': source_id,
+            'target': target_id,
+            'relationship': relationship,
+            'order': order
         }
-        self.structure["edges"].append(edge)
+        self.structure['edges'].append(edge)
+
+    def _hash_subtree(self, **kwargs) -> str:
+        node_type = kwargs['node_type']
+        name = kwargs.get('name', '')
+        attributes = kwargs.get('attributes', None)
+        children_hashes = kwargs.get('children_hashes', ())
+        content = kwargs.get('content', '')
+
+        identifier = (node_type, name, make_hashable(attributes), children_hashes, content)
+        
+        with self.cache_lock:
+            cached_hash = self.subtree_hash_cache.get(identifier)
+            if cached_hash:
+                return cached_hash
+
+        hasher = xxhash.xxh64()
+        hasher.update(node_type.encode('utf-8'))
+        if name:
+            hasher.update(name.encode('utf-8'))
+        if attributes:
+            hasher.update(str(attributes).encode('utf-8'))
+        if content:
+            hasher.update(content.encode('utf-8'))
+        for child_hash in children_hashes:
+            hasher.update(child_hash.encode('utf-8'))
+        hash_result = hasher.hexdigest()
+
+        with self.cache_lock:
+            self.subtree_hash_cache[identifier] = hash_result
+
+        return hash_result
 
     def _create_text(self, content: str) -> str:
-        # Check if text already exists
-        text_hash = self._hash_content(content)
-        if text_hash in self.data["texts"]:
-            return self.data["texts"][text_hash]
-
-        text_id = f"t{len(self.data['texts']) + 1}"
-        self.data["texts"][text_hash] = text_id
-        return text_id
+        with self.cache_lock:
+            text_id = self.text_lookup.get(content)
+            if text_id:
+                return text_id
+            text_id = f"t{len(self.data['texts']) + 1}"
+            self.data['texts'][text_id] = content
+            self.text_lookup[content] = text_id
+            return text_id
 
     def _create_doctype(self, content: str) -> str:
-        # Check if doctype already exists
-        doctype_hash = self._hash_content(content)
-        if doctype_hash in self.data["doctypes"]:
-            return self.data["doctypes"][doctype_hash]
-
-        doctype_id = f"d{len(self.data['doctypes']) + 1}"
-        self.data["doctypes"][doctype_hash] = doctype_id
-        return doctype_id
+        with self.cache_lock:
+            doctype_id = self.doctype_lookup.get(content)
+            if doctype_id:
+                return doctype_id
+            doctype_id = f"d{len(self.data['doctypes']) + 1}"
+            self.data['doctypes'][doctype_id] = content
+            self.doctype_lookup[content] = doctype_id
+            return doctype_id
 
     def _create_comment(self, content: str) -> str:
-        # Check if comment already exists
-        comment_hash = self._hash_content(content)
-        if comment_hash in self.data["comments"]:
-            return self.data["comments"][comment_hash]
-
-        comment_id = f"c{len(self.data['comments']) + 1}"
-        self.data["comments"][comment_hash] = comment_id
-        return comment_id
+        with self.cache_lock:
+            comment_id = self.comment_lookup.get(content)
+            if comment_id:
+                return comment_id
+            comment_id = f"c{len(self.data['comments']) + 1}"
+            self.data['comments'][comment_id] = content
+            self.comment_lookup[content] = comment_id
+            return comment_id
 
     def _create_attribute(self, attributes: Dict[str, Any]) -> str:
-        # Check if attributes already exist
-        attributes_hash = self._hash_content(str(attributes))
-        if attributes_hash in self.data["attributes"]:
-            return self.data["attributes"][attributes_hash]
+        attributes_key = make_hashable(attributes)
+        with self.cache_lock:
+            attribute_id = self.attribute_lookup.get(attributes_key)
+            if attribute_id:
+                return attribute_id
+            attribute_id = f"a{self.attribute_id_counter}"
+            self.attribute_id_counter += 1
+            self.data['attributes'][attribute_id] = attributes
+            self.attribute_lookup[attributes_key] = attribute_id
+            return attribute_id
 
-        attribute_id = f"a{self.attribute_id_counter}"
-        self.attribute_id_counter += 1
-        self.data["attributes"][attributes_hash] = attribute_id
-        return attribute_id
-
-    def _hash_content(self, content: str) -> str:
-        """Generate a hash for the given content."""
-        return xxhash.xxh64(content.encode('utf-8')).hexdigest()
-
-    def _hash_file(self, file_path: Path) -> str:
-        """Generate a hash for the given file."""
-        hasher = xxhash.xxh64()
-        with open(file_path, 'rb') as f:
-            buf = f.read()
-            hasher.update(buf)
-        return hasher.hexdigest()
+    def _compute_subtree_hash(self, element: Any) -> Tuple[str, str]:
+        if isinstance(element, Doctype):
+            hash_value = self._hash_subtree(node_type='doctype', content=str(element))
+        elif isinstance(element, Comment):
+            hash_value = self._hash_subtree(node_type='comment', content=str(element))
+        elif isinstance(element, NavigableString):
+            if element.strip():
+                hash_value = self._hash_subtree(node_type='textnode', content=element.strip())
+            else:
+                return '', ''
+        elif isinstance(element, Tag):
+            children_hashes = []
+            for child in element.children:
+                _, child_hash = self._compute_subtree_hash(child)
+                if child_hash:
+                    children_hashes.append(child_hash)
+            hash_value = self._hash_subtree(node_type='tag', name=element.name, attributes=element.attrs, children_hashes=tuple(children_hashes))
+        else:
+            logger.warning(f"Unknown element type for hashing: {type(element)}")
+            return '', ''
+        return '', hash_value
 
     async def save_results(self, output_dir: Path):
-        """Save the decomposed data and structure to YAML and Pickle files."""
         data_yaml_path = output_dir / config.files.data_yaml
         structure_yaml_path = output_dir / config.files.structure_yaml
         data_pickle_path = output_dir / config.files.data_pickle
         structure_pickle_path = output_dir / config.files.structure_pickle
 
-        save_tasks = [
-            DataHandler.save_yaml(self.data, data_yaml_path),
-            DataHandler.save_yaml(self.structure, structure_yaml_path),
-            DataHandler.save_pickle(self.data, data_pickle_path),
-            DataHandler.save_pickle(self.structure, structure_pickle_path)
-        ]
-
-        await tqdm.gather(*save_tasks, desc="Saving results", unit="file")
+        await asyncio.gather(
+            FileOperations.save_yaml(self.data, data_yaml_path),
+            FileOperations.save_yaml(self.structure, structure_yaml_path),
+            FileOperations.save_pickle(self.data, data_pickle_path),
+            FileOperations.save_pickle(self.structure, structure_pickle_path)
+        )
 
         logger.info("Decomposed data and structure saved successfully.")
 
-
 async def main():
-    # Define input and output directories
     output_dir = config.paths.decomposed_output_dir
+    
+    if output_dir.exists() and any(output_dir.iterdir()):
+        logger.info("Output directory already exists and contains files. Skipping decomposition process.")
+        return
 
-    # Ensure output directory exists
-    FileOperations.ensure_directory(output_dir)
+    await FileOperations.ensure_directory(output_dir)
 
     decomposer = Decomposer()
     await decomposer.process()
     await decomposer.save_results(output_dir)
 
     logger.info("Decomposition process completed successfully.")
-
 
 if __name__ == "__main__":
     asyncio.run(main())
