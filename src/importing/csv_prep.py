@@ -17,7 +17,6 @@ logger = Logger.get_logger(
     "CSVPrepLogger", config.paths.log_dir / "csv_prep.log"
 )
 
-
 class CSVExporter:
     """
     Handles exporting nodes, attributes, and relationships to CSV files.
@@ -144,7 +143,6 @@ class CSVExporter:
                     logger.error(f"Failed to close CSV file for {rel_type}: {e}")
         logger.debug("Closed all CSV files")
 
-
 class CSVPreparation:
     """
     Prepares CSV files from the structured data for Memgraph import.
@@ -159,7 +157,17 @@ class CSVPreparation:
 
     async def run(self):
         self.logger.info("Starting CSV Preparation Process...")
-        await self.load_data()
+        
+        # Check if output folder exists and has files
+        output_folder = config.paths.import_files_dir
+        if output_folder.exists() and any(output_folder.iterdir()):
+            self.logger.info("Output folder exists and contains files. Skipping CSV preparation.")
+            return
+
+        if not await self.load_data():
+            self.logger.error("Failed to load data. Exiting CSV preparation.")
+            return
+
         await self.prepare_nodes()
         await self.prepare_attributes()
         await self.prepare_relationships()
@@ -168,24 +176,30 @@ class CSVPreparation:
 
     async def load_data(self):
         self.logger.info("Loading data from Pickle files...")
-        structure_pickle_path = (
-            config.paths.condensed_output_dir / f"unwrapped_{config.files.structure_pickle}"
-        )
-        data_pickle_path = (
-            config.paths.condensed_output_dir / f"unwrapped_{config.files.data_pickle}"
-        )
+        structure_pickle_path = config.paths.processing_output_dir / config.files.filtered_structure_pickle
+        data_pickle_path = config.paths.processing_output_dir / config.files.filtered_data_pickle
+
+        if not structure_pickle_path.exists():
+            self.logger.error(f"Structure pickle file not found at {structure_pickle_path}")
+            return False
+
+        if not data_pickle_path.exists():
+            self.logger.error(f"Data pickle file not found at {data_pickle_path}")
+            return False
+
         try:
             self.structure = await DataHandler.load_pickle(structure_pickle_path)
             self.data = await DataHandler.load_pickle(data_pickle_path)
         except Exception as e:
             self.logger.error(f"Failed to load pickles: {e}")
-            return
+            return False
 
         if not self.structure or not self.data:
             self.logger.error("Loaded data is empty. Exiting CSV preparation.")
-            return
+            return False
 
         self.exporter = CSVExporter(config.paths.import_files_dir)
+        return True
 
     async def prepare_nodes(self):
         self.logger.info("Preparing node CSV files...")
@@ -308,11 +322,12 @@ class CSVPreparation:
         for node in sorted_nodes:
             await self.exporter.export_node(node['type'], node['id'], node)
 
-
 async def main():
-    prep = CSVPreparation()
-    await prep.run()
-
+    try:
+        prep = CSVPreparation()
+        await prep.run()
+    except Exception as e:
+        logger.error(f"An error occurred during CSV preparation: {e}", exc_info=True)
 
 if __name__ == "__main__":
     asyncio.run(main())

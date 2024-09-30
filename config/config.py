@@ -62,4 +62,4 @@ class Config(BaseSettings):
         return cls(**yaml_data)
 
 # Create a global config instance
-config = Config.load_from_yaml(Path(__file__).parent / "config.yaml")
+config = Config.load_from_yaml(Path(__file__).parent / "config.yml")

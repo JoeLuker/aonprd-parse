@@ -18,7 +18,6 @@ logger = Logger.get_logger(
     "UnwrapLogger", config.paths.log_dir / "unwrap.log"
 )
 
-
 class Unwrapper:
     """
     Handles unwrapping and validating graph data.
@@ -144,7 +143,7 @@ class Unwrapper:
         }
 
         logger.info("Unwrapping process completed.")
-        self.validate_graph()  # Add this line
+        self.validate_graph()
 
     def validate_graph(self):
         """Validate the integrity of the graph."""
@@ -183,20 +182,23 @@ class Unwrapper:
             output_dir / config.files.filtered_structure_pickle,
         )
         logger.info("Unwrapped data and structure saved successfully.")
-
-
 async def main():
     # Define input and output directories
     input_dir = config.paths.condensed_output_dir
     output_dir = config.paths.processing_output_dir
+    
+    # Check if output directory exists and has files
+    if output_dir.exists() and any(output_dir.iterdir()):
+        logger.info("Output directory already exists and contains files. Skipping unwrapping process.")
+        return
 
     # Ensure output directory exists
-    FileOperations.ensure_directory(output_dir)
+    await FileOperations.ensure_directory(output_dir)
 
     # Load condensed data and structure
     try:
-        data = DataHandler.load_pickle(input_dir / config.files.filtered_data_pickle)
-        structure = DataHandler.load_pickle(
+        data = await DataHandler.load_pickle(input_dir / config.files.filtered_data_pickle)
+        structure = await DataHandler.load_pickle(
             input_dir / config.files.filtered_structure_pickle
         )
         logger.info("Loaded condensed data and structure.")
@@ -235,7 +237,6 @@ async def main():
     await unwrapper.save_results(output_dir)
 
     logger.info("Unwrap Process Completed Successfully.")
-
 
 if __name__ == "__main__":
     asyncio.run(main())

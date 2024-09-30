@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Dict, Any, List, Set
 from collections import Counter, defaultdict
 
-
 from config.config import config
 from src.utils.logging import Logger
 from src.utils.data_handling import DataHandler
@@ -15,7 +14,6 @@ from src.utils.file_operations import FileOperations
 logger = Logger.get_logger(
     "CondenseDecompositionLogger", config.paths.log_dir / "condense_decomposition.log"
 )
-
 
 class Condenser:
     """
@@ -148,35 +146,39 @@ class Condenser:
         self.filter_structure(bad_targets)
         self.filter_data()
 
-    def save_results(self, output_dir: Path):
+    async def save_results(self, output_dir: Path):
         """Save the condensed data and structure."""
-        DataHandler.save_yaml(
+        await DataHandler.save_yaml(
             self.filtered_data, output_dir / config.files.filtered_data_yaml
         )
-        DataHandler.save_yaml(
+        await DataHandler.save_yaml(
             self.filtered_structure, output_dir / config.files.filtered_structure_yaml
         )
-        DataHandler.save_pickle(
+        await DataHandler.save_pickle(
             self.filtered_data, output_dir / config.files.filtered_data_pickle
         )
-        DataHandler.save_pickle(
+        await DataHandler.save_pickle(
             self.filtered_structure, output_dir / config.files.filtered_structure_pickle
         )
         logger.info("Condensed data and structure saved successfully.")
-
-
+        
 async def main():
     # Define input and output directories
     input_dir = config.paths.decomposed_output_dir
     output_dir = config.paths.condensed_output_dir
 
+    # Check if output directory exists and has files
+    if output_dir.exists() and any(output_dir.iterdir()):
+        logger.info("Output directory already exists and contains files. Skipping condensation process.")
+        return
+
     # Ensure output directory exists
-    FileOperations.ensure_directory(output_dir)
+    await FileOperations.ensure_directory(output_dir)
 
     # Load decomposed data and structure
     try:
-        data = DataHandler.load_pickle(input_dir / config.files.data_pickle)
-        structure = DataHandler.load_pickle(input_dir / config.files.structure_pickle)
+        data = await DataHandler.load_pickle(input_dir / config.files.data_pickle)
+        structure = await DataHandler.load_pickle(input_dir / config.files.structure_pickle)
         logger.info("Loaded decomposed data and structure.")
     except FileNotFoundError:
         logger.error("Decomposed data or structure not found.")
@@ -184,32 +186,29 @@ async def main():
 
     condenser = Condenser(data, structure)
     await condenser.run()
-    condenser.save_results(output_dir)
+    await condenser.save_results(output_dir)
 
-    # Print file size information
-    original_structure_size = (input_dir / config.files.structure_yaml).stat().st_size
-    original_data_size = (input_dir / config.files.data_yaml).stat().st_size
-    filtered_structure_size = (
-        (output_dir / config.files.filtered_structure_yaml).stat().st_size
-    )
-    filtered_data_size = (output_dir / config.files.filtered_data_yaml).stat().st_size
+    try:
+        original_structure_size = (input_dir / config.files.structure_yaml).stat().st_size
+        original_data_size = (input_dir / config.files.data_yaml).stat().st_size
+        filtered_structure_size = (output_dir / config.files.filtered_structure_yaml).stat().st_size
+        filtered_data_size = (output_dir / config.files.filtered_data_yaml).stat().st_size
 
-    logger.info("\nFile sizes:")
-    logger.info(f"Original structure: {original_structure_size:,} bytes")
-    logger.info(f"Original data: {original_data_size:,} bytes")
-    logger.info(f"Filtered structure: {filtered_structure_size:,} bytes")
-    logger.info(f"Filtered data: {filtered_data_size:,} bytes")
+        logger.info("\nFile sizes:")
+        logger.info(f"Original structure: {original_structure_size:,} bytes")
+        logger.info(f"Original data: {original_data_size:,} bytes")
+        logger.info(f"Filtered structure: {filtered_structure_size:,} bytes")
+        logger.info(f"Filtered data: {filtered_data_size:,} bytes")
 
-    total_original = original_structure_size + original_data_size
-    total_filtered = filtered_structure_size + filtered_data_size
-    reduction_percentage = (
-        ((total_original - total_filtered) / total_original) * 100
-        if total_original > 0
-        else 0
-    )
+        total_original = original_structure_size + original_data_size
+        total_filtered = filtered_structure_size + filtered_data_size
+        reduction_percentage = ((total_original - total_filtered) / total_original) * 100 if total_original > 0 else 0
 
-    logger.info(f"\nTotal size reduction: {reduction_percentage:.2f}%")
-
+        logger.info(f"\nTotal size reduction: {reduction_percentage:.2f}%")
+    except FileNotFoundError as e:
+        logger.error(f"Error reading file sizes: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error when processing file sizes: {e}")
 
 if __name__ == "__main__":
     asyncio.run(main())

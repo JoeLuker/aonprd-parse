@@ -44,7 +44,10 @@ async def check_files_exist():
 async def run_script(script_func, script_name: str):
     try:
         logger.info(f"Starting {script_name}...")
-        await script_func()
+        if asyncio.iscoroutinefunction(script_func):
+            await script_func()
+        else:
+            await asyncio.to_thread(script_func)
         logger.info(f"Script {script_name} completed successfully.")
     except Exception as e:
         logger.error(f"Script {script_name} failed: {e}")
@@ -68,11 +71,13 @@ async def main():
             (condense_decomposition.main, "Condense Decomposition"),
             (unwrap.main, "Unwrap"),
             (csv_prep.main, "CSV Preparation"),
-            (memgraph.main, "Memgraph Importer"),
         ]
 
         for script_func, script_name in scripts:
             await run_script(script_func, script_name)
+
+        # Run Memgraph Importer
+        await run_script(memgraph.main, "Memgraph Importer")
 
         logger.info("All processing scripts completed successfully.")
 
