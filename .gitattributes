@@ -1,2 +1,2 @@
-data/raw_html_data/*.html filter=lfs diff=lfs merge=lfs -text
-data/consolidated/crawler_state.db filter=lfs diff=lfs merge=lfs -text
+input_data/raw_html_data/*.html filter=lfs diff=lfs merge=lfs -text
+input_data/crawler_state.db filter=lfs diff=lfs merge=lfs -text

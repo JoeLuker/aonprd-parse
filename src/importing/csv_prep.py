@@ -13,9 +13,8 @@ from src.utils.logging import Logger
 from src.utils.data_handling import DataHandler
 
 # Initialize Logger
-logger = Logger.get_logger(
-    "CSVPrepLogger", config.paths.log_dir / "csv_prep.log"
-)
+logger = Logger.get_logger("CSVPrepLogger", config.paths.log_dir / "csv_prep.log")
+
 
 class CSVExporter:
     """
@@ -78,7 +77,9 @@ class CSVExporter:
                 files[key] = {"file": None, "writer": None}
         return files
 
-    async def export_node(self, node_type: str, node_id: str, properties: Dict[str, Any]):
+    async def export_node(
+        self, node_type: str, node_id: str, properties: Dict[str, Any]
+    ):
         """
         Exports a node to the corresponding CSV file.
         """
@@ -87,13 +88,18 @@ class CSVExporter:
             logger.warning(f"No CSV writer found for node type: {node_type}")
             return
         if node_type == "Tag":
-            await asyncio.to_thread(writer.writerow, [
-                node_id,
-                properties.get("name", ""),
-                properties.get("attributes_id", ""),
-            ])
+            await asyncio.to_thread(
+                writer.writerow,
+                [
+                    node_id,
+                    properties.get("name", ""),
+                    properties.get("attributes_id", ""),
+                ],
+            )
         else:
-            await asyncio.to_thread(writer.writerow, [node_id] + list(properties.values()))
+            await asyncio.to_thread(
+                writer.writerow, [node_id] + list(properties.values())
+            )
         logger.debug(f"Exported node: {node_type} with ID {node_id}")
 
     async def export_attribute(self, attribute_id: str, attributes: Dict[str, Any]):
@@ -124,9 +130,13 @@ class CSVExporter:
             logger.warning(f"No CSV writer found for relationship type: {rel_type}")
             return
         if order is not None:
-            await asyncio.to_thread(writer.writerow, [source, target, source_type, target_type, order])
+            await asyncio.to_thread(
+                writer.writerow, [source, target, source_type, target_type, order]
+            )
         else:
-            await asyncio.to_thread(writer.writerow, [source, target, source_type, target_type])
+            await asyncio.to_thread(
+                writer.writerow, [source, target, source_type, target_type]
+            )
         logger.debug(f"Exported relationship: {rel_type} from {source} to {target}")
 
     async def close(self):
@@ -143,6 +153,7 @@ class CSVExporter:
                     logger.error(f"Failed to close CSV file for {rel_type}: {e}")
         logger.debug("Closed all CSV files")
 
+
 class CSVPreparation:
     """
     Prepares CSV files from the structured data for Memgraph import.
@@ -157,11 +168,13 @@ class CSVPreparation:
 
     async def run(self):
         self.logger.info("Starting CSV Preparation Process...")
-        
+
         # Check if output folder exists and has files
         output_folder = config.paths.import_files_dir
         if output_folder.exists() and any(output_folder.iterdir()):
-            self.logger.info("Output folder exists and contains files. Skipping CSV preparation.")
+            self.logger.info(
+                "Output folder exists and contains files. Skipping CSV preparation."
+            )
             return
 
         if not await self.load_data():
@@ -176,11 +189,17 @@ class CSVPreparation:
 
     async def load_data(self):
         self.logger.info("Loading data from Pickle files...")
-        structure_pickle_path = config.paths.processing_output_dir / config.files.filtered_structure_pickle
-        data_pickle_path = config.paths.processing_output_dir / config.files.filtered_data_pickle
+        structure_pickle_path = (
+            config.paths.processing_output_dir / config.files.filtered_structure_pickle
+        )
+        data_pickle_path = (
+            config.paths.processing_output_dir / config.files.filtered_data_pickle
+        )
 
         if not structure_pickle_path.exists():
-            self.logger.error(f"Structure pickle file not found at {structure_pickle_path}")
+            self.logger.error(
+                f"Structure pickle file not found at {structure_pickle_path}"
+            )
             return False
 
         if not data_pickle_path.exists():
@@ -262,7 +281,9 @@ class CSVPreparation:
                 except Exception as e:
                     self.logger.error(f"Error exporting node {node_id}: {e}")
             else:
-                self.logger.warning(f"Unknown node type: {node_type_raw} for node {node}")
+                self.logger.warning(
+                    f"Unknown node type: {node_type_raw} for node {node}"
+                )
 
     async def prepare_attributes(self):
         self.logger.info("Preparing attributes CSV file...")
@@ -318,9 +339,10 @@ class CSVPreparation:
                 self.logger.error(f"Error exporting relationship {relationship}: {e}")
 
     async def export_nodes(self, nodes: List[Dict[str, Any]]):
-        sorted_nodes = sorted(nodes, key=lambda x: x['id'])
+        sorted_nodes = sorted(nodes, key=lambda x: x["id"])
         for node in sorted_nodes:
-            await self.exporter.export_node(node['type'], node['id'], node)
+            await self.exporter.export_node(node["type"], node["id"], node)
+
 
 async def main():
     try:
@@ -328,6 +350,7 @@ async def main():
         await prep.run()
     except Exception as e:
         logger.error(f"An error occurred during CSV preparation: {e}", exc_info=True)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

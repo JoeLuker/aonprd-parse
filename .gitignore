@@ -201,5 +201,5 @@ results.txt
 
 .ruff_cache/
 
-input_data/
 output_data/
+input_data/raw_html_data/

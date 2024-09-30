@@ -17,6 +17,7 @@ logger = Logger.get_logger(
     "FileOperationsLogger", config.paths.log_dir / "file_operations.log"
 )
 
+
 class FileOperations:
     @staticmethod
     async def read_file_async(file_path: Path) -> str:
@@ -59,14 +60,16 @@ class FileOperations:
             raise
 
     @staticmethod
-    async def apply_replacements(content: str, replacements: Dict[str, str]) -> Tuple[str, Set[str]]:
+    async def apply_replacements(
+        content: str, replacements: Dict[str, str]
+    ) -> Tuple[str, Set[str]]:
         applied = set()
         for old, new in replacements.items():
             if old in content:
                 content = content.replace(old, new)
                 applied.add(old)
         return content, applied
-    
+
     @staticmethod
     async def ensure_directory(directory: Path):
         """Ensure that a directory exists asynchronously."""
@@ -119,7 +122,9 @@ class FileOperations:
             logger.debug(f"Calculated xxHash for file: {file_path}")
             return file_hash
         except Exception as e:
-            logger.error(f"Failed to calculate xxHash for file {file_path}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to calculate xxHash for file {file_path}: {e}", exc_info=True
+            )
             raise
 
     @staticmethod
@@ -144,7 +149,9 @@ class FileOperations:
             logger.debug(f"Loaded YAML data from {filepath}")
             return data
         except Exception as e:
-            logger.error(f"Failed to load YAML data from {filepath}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to load YAML data from {filepath}: {e}", exc_info=True
+            )
             raise
 
     @staticmethod
@@ -156,7 +163,9 @@ class FileOperations:
                 await f.write(pickle_data)
             logger.debug(f"Saved pickle data to {filepath}")
         except Exception as e:
-            logger.error(f"Failed to save pickle data to {filepath}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to save pickle data to {filepath}: {e}", exc_info=True
+            )
             raise
 
     @staticmethod
@@ -169,5 +178,7 @@ class FileOperations:
             logger.debug(f"Loaded pickle data from {filepath}")
             return data
         except Exception as e:
-            logger.error(f"Failed to load pickle data from {filepath}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to load pickle data from {filepath}: {e}", exc_info=True
+            )
             raise

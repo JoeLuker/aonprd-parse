@@ -89,14 +89,17 @@ async def process_file_async(
         source_hash = await FileOperations.get_file_hash(source_path)
         dest_hash = await FileOperations.get_file_hash(destination_path)
         if source_hash == dest_hash:
-            logger.debug(f"Destination file already exists and matches source: {source_path.name}")
+            logger.debug(
+                f"Destination file already exists and matches source: {source_path.name}"
+            )
             return False, set()
 
     try:
         content = await FileOperations.read_file_async(source_path)
-        modified_content, applied_replacements = await FileOperations.apply_replacements(
-            content, REPLACEMENTS
-        )
+        (
+            modified_content,
+            applied_replacements,
+        ) = await FileOperations.apply_replacements(content, REPLACEMENTS)
         if applied_replacements:
             await FileOperations.write_file_async(destination_path, modified_content)
             logger.info(f"Applied replacements to file: {source_path.name}")
@@ -120,6 +123,7 @@ async def process_file_with_name(
         file_path, destination_path, skip_files
     )
     return file_path.name, modified, applied_replacements
+
 
 async def clean_and_copy_files_async(
     skip_files: Set[str],
@@ -189,7 +193,7 @@ async def get_html_file_mapping(conn: aiosqlite.Connection) -> List[Dict[str, An
 
 
 async def prepare_canonical_mapping(
-    mapping_data: List[Dict[str, Any]]
+    mapping_data: List[Dict[str, Any]],
 ) -> List[Tuple[str, str, str, str]]:
     """Prepare canonical mapping tuples for database insertion."""
     canonical_mappings = [
@@ -263,13 +267,18 @@ async def process_database(conn: aiosqlite.Connection):
         logger.error(f"Error processing database mappings: {e}", exc_info=True)
         raise
 
+
 async def main():
     """Main asynchronous function to orchestrate the manual cleaning process."""
     logger.info("Starting Manual Cleaning Process...")
 
     # Check if output folder exists and has files
-    if config.paths.manual_cleaned_html_data.exists() and any(config.paths.manual_cleaned_html_data.iterdir()):
-        logger.info("Output folder already exists and contains files. Skipping manual cleaning process.")
+    if config.paths.manual_cleaned_html_data.exists() and any(
+        config.paths.manual_cleaned_html_data.iterdir()
+    ):
+        logger.info(
+            "Output folder already exists and contains files. Skipping manual cleaning process."
+        )
         return
 
     # Ensure destination directory exists

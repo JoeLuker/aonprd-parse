@@ -12,7 +12,8 @@ from config.config import config
 # Initialize Logger
 logger = Logger.get_logger(
     "DataHandlerLogger", config.paths.log_dir / "data_handling.log"
-)   
+)
+
 
 class DataHandler:
     @staticmethod

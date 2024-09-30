@@ -3,7 +3,6 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from config.config import config
 
 # Define VERBOSE Level
 VERBOSE_LEVEL_NUM = 5

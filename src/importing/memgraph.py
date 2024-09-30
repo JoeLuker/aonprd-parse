@@ -14,9 +14,9 @@ import asyncio
 
 # Initialize Logger
 logger = Logger.get_logger(
-    "MemgraphImporterLogger",
-    config.paths.log_dir / "memgraph_importer.log"
+    "MemgraphImporterLogger", config.paths.log_dir / "memgraph_importer.log"
 )
+
 
 class MemgraphImporter:
     def __init__(self, csv_dir: Path, batch_size: int = 1000, max_workers: int = 16):
@@ -29,7 +29,7 @@ class MemgraphImporter:
     def prepare_load_csv_queries(self) -> List[str]:
         queries = []
         csv_dir = "/var/lib/memgraph/import"
-        
+
         node_files = {
             "Document": "documents.csv",
             "Doctype": "doctypes.csv",
@@ -57,7 +57,7 @@ class MemgraphImporter:
             "CREATE INDEX ON :Comment(id)",
             "CREATE INDEX ON :TextNode(id)",
             "CREATE INDEX ON :Tag(id)",
-            "CREATE INDEX ON :Attribute(id)"
+            "CREATE INDEX ON :Attribute(id)",
         ]
         db = Memgraph(host=self.memgraph_host, port=self.memgraph_port)
         for query in index_queries:
@@ -65,15 +65,25 @@ class MemgraphImporter:
         logger.info("Created indexes")
 
     def process_relationship_batch(self, args):
-        batch, relationship_type, source_type, target_type, progress, lock, max_retries, backoff_factor, initial_wait = args
+        (
+            batch,
+            relationship_type,
+            source_type,
+            target_type,
+            progress,
+            lock,
+            max_retries,
+            backoff_factor,
+            initial_wait,
+        ) = args
         query = f"""
         UNWIND $batch AS rel
         MATCH (a:{source_type} {{id: rel.source}}), (b:{target_type} {{id: rel.target}})
         CREATE (a)-[:{relationship_type} {{order: rel.order}}]->(b)
         """
-        
+
         db = Memgraph(host=self.memgraph_host, port=self.memgraph_port)
-        
+
         for attempt in range(max_retries):
             try:
                 db.execute(query, {"batch": batch})
@@ -81,8 +91,12 @@ class MemgraphImporter:
                     progress.value += len(batch)
                 break
             except Exception as e:
-                wait_time = initial_wait * (backoff_factor ** attempt) + random.uniform(0, 0.1)
-                logger.error(f"Failed to execute batch, attempt {attempt + 1}: {e}. Retrying in {wait_time:.2f} seconds...")
+                wait_time = initial_wait * (backoff_factor**attempt) + random.uniform(
+                    0, 0.1
+                )
+                logger.error(
+                    f"Failed to execute batch, attempt {attempt + 1}: {e}. Retrying in {wait_time:.2f} seconds..."
+                )
                 time.sleep(wait_time)
                 if attempt == max_retries - 1:
                     logger.error("Max retries reached, failing the batch.")
@@ -90,12 +104,14 @@ class MemgraphImporter:
 
     def batch_relationships(self, relationship_data, batch_size=100):
         for i in range(0, len(relationship_data), batch_size):
-            yield relationship_data[i:i + batch_size]
+            yield relationship_data[i : i + batch_size]
 
     def import_relationships_parallel(self, csv_file_path, relationship_type):
-        logger.info(f"Importing relationships from {csv_file_path} with type {relationship_type}")
+        logger.info(
+            f"Importing relationships from {csv_file_path} with type {relationship_type}"
+        )
         relationship_data = []
-        with open(csv_file_path, 'r', encoding='utf-8') as file:
+        with open(csv_file_path, "r", encoding="utf-8") as file:
             reader = csv.DictReader(file)
             total_rows = 0
             for row in reader:
@@ -103,32 +119,59 @@ class MemgraphImporter:
                 source_type = row.get("source_type", "SourceType")
                 target_type = row.get("target_type", "TargetType")
                 if "order" in row:
-                    relationship_data.append({"source": row["source"], "target": row["target"], "order": int(row["order"])})
+                    relationship_data.append(
+                        {
+                            "source": row["source"],
+                            "target": row["target"],
+                            "order": int(row["order"]),
+                        }
+                    )
                 else:
-                    relationship_data.append({"source": row["source"], "target": row["target"]})
-        
+                    relationship_data.append(
+                        {"source": row["source"], "target": row["target"]}
+                    )
+
         logger.info(f"Total number of rows: {total_rows}")
         total_relationships = len(relationship_data)
         logger.info(f"Total number of relationships: {total_relationships}")
-        batches = list(self.batch_relationships(relationship_data, batch_size=self.batch_size))
-        
+        batches = list(
+            self.batch_relationships(relationship_data, batch_size=self.batch_size)
+        )
+
         manager = multiprocessing.Manager()
-        progress = manager.Value('i', 0)
+        progress = manager.Value("i", 0)
         lock = manager.Lock()
-        
+
         max_retries = 5
         backoff_factor = 1.5
         initial_wait = 0.5
 
         with multiprocessing.Pool(self.max_workers) as pool:
-            with tqdm(total=total_relationships, desc=f"Importing {relationship_type}") as pbar:
-                for _ in pool.imap_unordered(self.process_relationship_batch, [
-                    (batch, relationship_type, source_type, target_type, progress, lock, max_retries, backoff_factor, initial_wait)
-                    for batch in batches
-                ]):
+            with tqdm(
+                total=total_relationships, desc=f"Importing {relationship_type}"
+            ) as pbar:
+                for _ in pool.imap_unordered(
+                    self.process_relationship_batch,
+                    [
+                        (
+                            batch,
+                            relationship_type,
+                            source_type,
+                            target_type,
+                            progress,
+                            lock,
+                            max_retries,
+                            backoff_factor,
+                            initial_wait,
+                        )
+                        for batch in batches
+                    ],
+                ):
                     pbar.update(self.batch_size)
-        
-        logger.info(f"Imported {progress.value}/{total_relationships} relationships for {relationship_type}")
+
+        logger.info(
+            f"Imported {progress.value}/{total_relationships} relationships for {relationship_type}"
+        )
 
     def run_import(self):
         logger.info("Starting Memgraph import process...")
@@ -171,6 +214,7 @@ class MemgraphImporter:
 
         logger.info("Relationship import completed successfully")
 
+
 async def main():
     csv_dir = config.paths.import_files_dir
     importer = MemgraphImporter(
@@ -184,6 +228,8 @@ async def main():
         logger.error(f"An error occurred in the main function: {e}", exc_info=True)
         raise  # Re-raise the exception to be caught by the calling function
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(main())

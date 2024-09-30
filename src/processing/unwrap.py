@@ -14,9 +14,8 @@ from src.utils.data_handling import DataHandler
 from src.utils.file_operations import FileOperations
 
 # Initialize Logger
-logger = Logger.get_logger(
-    "UnwrapLogger", config.paths.log_dir / "unwrap.log"
-)
+logger = Logger.get_logger("UnwrapLogger", config.paths.log_dir / "unwrap.log")
+
 
 class Unwrapper:
     """
@@ -155,13 +154,17 @@ class Unwrapper:
 
             if not nx.is_weakly_connected(self.graph):
                 num_components = nx.number_weakly_connected_components(self.graph)
-                logger.warning(f"Graph has {num_components} weakly connected components.")
+                logger.warning(
+                    f"Graph has {num_components} weakly connected components."
+                )
 
             orphaned_nodes = [
                 node for node in self.graph.nodes() if self.graph.degree(node) == 0
             ]
             if orphaned_nodes:
-                logger.warning(f"Found {len(orphaned_nodes)} orphaned nodes in the graph.")
+                logger.warning(
+                    f"Found {len(orphaned_nodes)} orphaned nodes in the graph."
+                )
 
         except Exception as e:
             logger.error(f"Error validating graph: {e}", exc_info=True)
@@ -182,14 +185,18 @@ class Unwrapper:
             output_dir / config.files.filtered_structure_pickle,
         )
         logger.info("Unwrapped data and structure saved successfully.")
+
+
 async def main():
     # Define input and output directories
     input_dir = config.paths.condensed_output_dir
     output_dir = config.paths.processing_output_dir
-    
+
     # Check if output directory exists and has files
     if output_dir.exists() and any(output_dir.iterdir()):
-        logger.info("Output directory already exists and contains files. Skipping unwrapping process.")
+        logger.info(
+            "Output directory already exists and contains files. Skipping unwrapping process."
+        )
         return
 
     # Ensure output directory exists
@@ -197,7 +204,9 @@ async def main():
 
     # Load condensed data and structure
     try:
-        data = await DataHandler.load_pickle(input_dir / config.files.filtered_data_pickle)
+        data = await DataHandler.load_pickle(
+            input_dir / config.files.filtered_data_pickle
+        )
         structure = await DataHandler.load_pickle(
             input_dir / config.files.filtered_structure_pickle
         )
@@ -237,6 +246,7 @@ async def main():
     await unwrapper.save_results(output_dir)
 
     logger.info("Unwrap Process Completed Successfully.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

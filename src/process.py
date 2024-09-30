@@ -1,14 +1,6 @@
 # src/process.py
 
-import asyncio
-import sys
-from pathlib import Path
-
-# Add the project root directory to the Python path
-project_root = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(project_root))
-
-from config.config import config
+from ..config.config import config
 from src.utils.logging import Logger
 from src.decomposing import decomposer, condense_decomposition
 from src.processing import unwrap
@@ -16,11 +8,10 @@ from src.importing import csv_prep, memgraph
 from src.cleaning import manual_cleaning, cleaner
 from src.utils.file_operations import FileOperations
 
+import asyncio
+
 # Initialize Logger using the structured config
-logger = Logger.get_logger(
-    "ProcessLogger", 
-    config.paths.log_dir / "processor.log"
-)
+logger = Logger.get_logger("ProcessLogger", config.paths.log_dir / "processor.log")
 
 
 async def check_files_exist():
@@ -62,7 +53,7 @@ async def main():
 
         # Optionally, clean output directories
         await FileOperations.ensure_directory(config.paths.processed_output_dir)
-        
+
         # Run scripts
         scripts = [
             (cleaner.main, "Cleaning"),

@@ -58,12 +58,6 @@ aonprd-parse/
 │   │   └── data_handling.py
 │   ├── __init__.py
 │   └── process.py
-├── tests/
-│   ├── cleaning/
-│   ├── decomposing/
-│   ├── importing/
-│   ├── processing/
-│   └── utils/
 ├── data/
 │   ├── raw_html_data/
 │   ├── manual_cleaned_html_data/
@@ -112,7 +106,7 @@ python src/process.py
 
 ## Configuration
 
-All configuration parameters are centralized in `config/config.py` and `config/config.yaml`. Adjust paths, logging configurations, and processing limits as needed.
+All configuration parameters are centralized in `config/config.py` and `config/config.yml`. Adjust paths, logging configurations, and processing limits as needed.
 
 ## Logging
 

@@ -15,6 +15,7 @@ logger = Logger.get_logger(
     "CondenseDecompositionLogger", config.paths.log_dir / "condense_decomposition.log"
 )
 
+
 class Condenser:
     """
     Condenses and filters decomposed data based on specific criteria.
@@ -161,7 +162,8 @@ class Condenser:
             self.filtered_structure, output_dir / config.files.filtered_structure_pickle
         )
         logger.info("Condensed data and structure saved successfully.")
-        
+
+
 async def main():
     # Define input and output directories
     input_dir = config.paths.decomposed_output_dir
@@ -169,7 +171,9 @@ async def main():
 
     # Check if output directory exists and has files
     if output_dir.exists() and any(output_dir.iterdir()):
-        logger.info("Output directory already exists and contains files. Skipping condensation process.")
+        logger.info(
+            "Output directory already exists and contains files. Skipping condensation process."
+        )
         return
 
     # Ensure output directory exists
@@ -178,7 +182,9 @@ async def main():
     # Load decomposed data and structure
     try:
         data = await DataHandler.load_pickle(input_dir / config.files.data_pickle)
-        structure = await DataHandler.load_pickle(input_dir / config.files.structure_pickle)
+        structure = await DataHandler.load_pickle(
+            input_dir / config.files.structure_pickle
+        )
         logger.info("Loaded decomposed data and structure.")
     except FileNotFoundError:
         logger.error("Decomposed data or structure not found.")
@@ -189,10 +195,16 @@ async def main():
     await condenser.save_results(output_dir)
 
     try:
-        original_structure_size = (input_dir / config.files.structure_yaml).stat().st_size
+        original_structure_size = (
+            (input_dir / config.files.structure_yaml).stat().st_size
+        )
         original_data_size = (input_dir / config.files.data_yaml).stat().st_size
-        filtered_structure_size = (output_dir / config.files.filtered_structure_yaml).stat().st_size
-        filtered_data_size = (output_dir / config.files.filtered_data_yaml).stat().st_size
+        filtered_structure_size = (
+            (output_dir / config.files.filtered_structure_yaml).stat().st_size
+        )
+        filtered_data_size = (
+            (output_dir / config.files.filtered_data_yaml).stat().st_size
+        )
 
         logger.info("\nFile sizes:")
         logger.info(f"Original structure: {original_structure_size:,} bytes")
@@ -202,13 +214,18 @@ async def main():
 
         total_original = original_structure_size + original_data_size
         total_filtered = filtered_structure_size + filtered_data_size
-        reduction_percentage = ((total_original - total_filtered) / total_original) * 100 if total_original > 0 else 0
+        reduction_percentage = (
+            ((total_original - total_filtered) / total_original) * 100
+            if total_original > 0
+            else 0
+        )
 
         logger.info(f"\nTotal size reduction: {reduction_percentage:.2f}%")
     except FileNotFoundError as e:
         logger.error(f"Error reading file sizes: {e}")
     except Exception as e:
         logger.error(f"Unexpected error when processing file sizes: {e}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
